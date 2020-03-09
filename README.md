@@ -17,3 +17,15 @@ blog to the most popular websites in the world. PHP is distributed under the
 ## Documentation
 
 The PHP manual is available at [php.net/docs](https://php.net/docs).
+
+## Docker image
+
+This PHP docker image contain the following modules or features:
+
+- [Decimal](https://php-decimal.io/)
+- [Pthreads](https://github.com/krakjoe/pthreads)
+- [Xdebug](https://github.com/xdebug/xdebug.git)
+- [Memcached](https://github.com/php-memcached-dev/php-memcached.git)
+- [Mongodb](https://github.com/mongodb/mongo-php-driver.git)
+- [Redis](https://github.com/phpredis/phpredis.git)
+- PHP-FPM
