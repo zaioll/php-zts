@@ -2,7 +2,7 @@ FROM zaioll/debian:stretch
 
 LABEL maintener 'Láyro Cristofér <zaioll@protonmail.com>'
 
-ENV VERSION=7.2
+ENV VERSION=7.4
 ENV FPM_SOCKET=1
 
 COPY install /install/

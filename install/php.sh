@@ -1,10 +1,9 @@
 
 DEBIAN_FRONTEND=noninteractive apt-get remove php-cli -y
-DEBIAN_FRONTEND=noninteractive apt-get install tree git -y
 
 major=$(echo $VERSION | cut -d. -f1)
 minor=$(echo $VERSION | cut -d. -f2)
-full_version=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{2}$" | tail -n 1 | cut -d- -f2)
+full_version=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,2}$" | tail -n 1 | cut -d- -f2)
 patch=$(echo $full_version | cut -d. -f3)
 
 install_path=$INSTALL_BASE/local/src
@@ -30,8 +29,8 @@ cd php
    --includedir=${prefix}/share \
    --with-layout=GNU \
    --with-bz2 \
+   --with-zlib-dir \
    --with-zlib \
-   --enable-zip \
    --disable-cgi \
    --enable-soap \
    --enable-intl \
@@ -43,30 +42,22 @@ cd php
    --enable-mysqlnd \
    --with-mysqli=mysqlnd \
    --with-pdo-mysql=mysqlnd \
-   --with-firebird \
    --with-pdo-firebird \
    --enable-sockets \
    --enable-pcntl \
    --with-pspell \
    --with-enchant \
    --with-gettext \
-   --with-gd \
    --enable-exif \
-   --with-jpeg-dir \
-   --with-png-dir \
-   --with-freetype-dir \
    --with-xsl \
    --enable-bcmath \
    --enable-mbstring \
    --enable-calendar \
    --enable-simplexml \
    --enable-json \
-   --enable-hash \
    --enable-session \
    --enable-xml \
-   --enable-wddx \
    --enable-opcache \
-   --with-pcre-regex \
    --with-config-file-path=${sysconfdir}/php/${VERSION} \
    --with-config-file-scan-dir=${sysconfdir}/php/${VERSION}/conf.d \
    --enable-cli \
@@ -74,6 +65,22 @@ cd php
    --with-tsrm-pthreads \
    --enable-debug \
    --enable-fpm \
+   --enable-gd \
+   --with-pgsql \
+   --disable-rpath \
+   --enable-sysvsem \
+   --enable-sysvshm \
+   --enable-inline-optimization \
+   --enable-mbregex \
+   --with-mhash \
+   --with-zip \
+   --with-jpeg \
+   --with-imap \
+   --with-imap-ssl \
+   --with-kerberos \
+   --with-xmlrpc \
+   --with-pear \
+   --with-mysql-sock=/var/run/mysqld/mysqld.sock \
    --with-fpm-user=www-data \
    --with-fpm-group=www-data 
 
@@ -101,7 +108,7 @@ sed -i 's#;listen.group = www-data#listen.group = www-data#g' ${sysconfdir}/php/
 sed -i 's#;listen.mode = www-data#listen.mode = www-mode#g' ${sysconfdir}/php/${VERSION}/fpm/pool.d/www.conf 
 sed -i "s#include=/etc/php-fpm.d/\*\.conf#include=${sysconfdir}/php/${VERSION}/fpm/pool.d/*.conf#g" ${sysconfdir}/php/${VERSION}/fpm/php-fpm.conf
 
-tree ${sysconfdir}/php
-tree $(php-config --includedir)
+#tree ${sysconfdir}/php
+#tree $(php-config --includedir)
 
 #cat /run/php.ini $(php-config --prefix)/etc/all-ext.ini>${sysconfdir}/php/php-all-ext.ini

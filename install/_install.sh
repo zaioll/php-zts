@@ -12,5 +12,5 @@ mkdir /info
 /install/php-memcached.sh
 /install/php-mongodb.sh
 /install/php-redis.sh
-#/install/php-phalcon.sh
+##/install/php-phalcon.sh
 /install/post-install.sh

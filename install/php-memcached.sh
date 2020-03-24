@@ -7,9 +7,9 @@ fi
 extension_dir=$(php-config --extension-dir)
 config_dir=$(php-config --prefix)/etc/conf.d
 
-# install php-memcached
 cd $INSTALL_BASE/src
-branch_memcached="php7"
+# install php-memcached
+branch_memcached="v3.1.5"
 
 echo "install"
 figlet "php-memcached"
@@ -19,6 +19,7 @@ git clone https://github.com/php-memcached-dev/php-memcached.git --branch $branc
 cd php-memcached
 
 phpize
-./configure --disable-memcached-sasl
+./configure --enable-memcached --with-libmemcached-dir --disable-memcached-sasl
 make -j$(nproc) > >(tee /info/compile-php-memcached.log) 2> >(tee /info/compile-php-memcached.err >&2)
+
 cp modules/memcached.so $extension_dir/memcached.so
