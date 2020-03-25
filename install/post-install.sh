@@ -9,7 +9,6 @@ rm -rf /var/cache/debconf/*-old
 rm -rf /var/lib/apt/lists/*
 rm -rf /usr/share/doc/*
 rm -rf /var/log/*
-#rm -rf $INSTALL_BASE/src
 
 dpkg-query --show --showformat='${Package;-30} ${Version;-30} ${Status}\n' | grep installed | grep ^lib | awk '{printf "%-30s %s\n",$1,$2}'>/info/installed-libs
 
@@ -26,3 +25,5 @@ for f in $ext_dir/*.so; do
 done
 
 php -c $all_ext_ini -r 'foreach (get_loaded_extensions() as $e) { echo "$e\t" . phpversion($e) . "\n"; }' | awk '{printf "%-30s %s\n",$1,$2}'>/info/installed-php-extensions
+
+rm -rf $INSTALL_BASE/local/src/*

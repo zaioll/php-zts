@@ -8,7 +8,7 @@ extension_dir=$(php-config --extension-dir)
 config_dir=$(php-config --prefix)/etc/conf.d
 
 # install php-redis
-cd $INSTALL_BASE/src
+cd $INSTALL_BASE/local/src
 branch_redis="master"
 
 echo "install"

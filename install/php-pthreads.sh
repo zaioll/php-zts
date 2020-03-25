@@ -8,7 +8,7 @@ extension_dir=$(php-config --extension-dir)
 config_dir=$(php-config --prefix)/etc/conf.d
 
 # install php-pthreads
-cd $INSTALL_BASE/src
+cd $INSTALL_BASE/local/src
 version_pthreads=$(git ls-remote --tags https://github.com/krakjoe/pthreads.git | grep -o 'v[0-9]*.[0-9]*.[0-9]*$' | tail -n 1 | cut -b 2-)
 
 echo "install"

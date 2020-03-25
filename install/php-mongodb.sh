@@ -8,7 +8,7 @@ extension_dir=$(php-config --extension-dir)
 config_dir=$(php-config --prefix)/etc/conf.d
 
 # install php-mongodb
-cd $INSTALL_BASE/src
+cd $INSTALL_BASE/local/src
 version_mongodb=$(git ls-remote --tags https://github.com/mongodb/mongo-php-driver.git | egrep -o '[0-9]*\.[0-9]*\.[0-9]*$' | tail -n 1)
 
 echo "install"
