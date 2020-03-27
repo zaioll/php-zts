@@ -5,7 +5,8 @@ if [ -z $INSTALL_BASE ]; then
 fi
 
 extension_dir=$(php-config --extension-dir)
-config_dir=$(php-config --prefix)/etc/conf.d
+config_dir="$(php-config --ini-dir)"
+pool_conf=$(php-config --ini-path)/fpm/pool.d/www.conf
 
 # install php-xdebug
 cd $INSTALL_BASE/src
@@ -23,3 +24,7 @@ phpize
 ./configure --enable-xdebug
 make -j$(nproc) > >(tee /info/compile-php-xdebug.log) 2> >(tee /info/compile-php-xdebug.err >&2)
 cp modules/xdebug.so $extension_dir/xdebug.so
+
+echo "[Xdebug]" > ${config_dir}/20-xdebug.ini
+echo "zend_extension=${extension_dir}/xdebug.so" >> ${config_dir}/20-xdebug.ini
+echo "env[XDEBUG_CONFIG]=\$XDEBUG_CONFIG" >> ${pool_conf}
