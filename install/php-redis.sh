@@ -5,17 +5,24 @@ if [ -z ${install_base} ]; then
 fi
 
 extension_dir=$(php-config --extension-dir)
-config_dir=$(php-config --prefix)/etc/conf.d
+config_dir=$(php-config --ini-dir)
 
 # install php-redis
 cd ${install_base}/local/src
-branch_redis="master"
+version_redis=$(git ls-remote --tags https://github.com/phpredis/phpredis.git | egrep -o '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | tail -n 1)
 
 echo "install"
 figlet "php-redis"
-echo "from ${branch_redis} branch"
+echo "from ${version_redis} branch"
 
-git clone https://github.com/phpredis/phpredis.git --branch ${branch_redis} --single-branch
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location https://github.com/phpredis/phpredis/archive/${version_redis}.tar.gz | tar xzf -
+
+mv phpredis* phpredis
 cd phpredis
 
 phpize
