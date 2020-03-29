@@ -9,11 +9,11 @@ config_dir=$(php-config --ini-dir)
 
 # install php-parallel
 cd ${install_base}/local/src
-version_pthreads=$(git ls-remote --tags https://github.com/krakjoe/parallel.git | grep -o 'v[0-9]*.[0-9]*.[0-9]*$' | tail -n 1 | cut -b 2-)
+version_parallel=$(git ls-remote --tags https://github.com/krakjoe/parallel.git | egrep -o 'v?[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | tail -n 1)
 
 echo "install"
 figlet "php-parallel"
-echo "version ${version_pthreads}"
+echo "version $(echo ${version_parallel} | cut -b 2-)"
 
 # Download
 curl \
@@ -21,7 +21,7 @@ curl \
   --max-time 60 \
   --retry-max-time 60 \
   --retry 5 \
-  --location https://github.com/krakjoe/parallel/archive/v${version_pthreads}.tar.gz | tar xzf -
+  --location https://github.com/krakjoe/parallel/archive/${version_parallel}.tar.gz | tar xzf -
 
 mv parallel* parallel
 cd parallel
