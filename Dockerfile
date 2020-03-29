@@ -1,6 +1,6 @@
 FROM zaioll/debian:stretch
 
-LABEL maintener 'Láyro Cristofér <zaioll@protonmail.com>'
+LABEL maintener 'Láyro Chrystofer <zaioll@protonmail.com>'
 
 ENV php_version=7.4
 
