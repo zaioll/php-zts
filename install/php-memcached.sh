@@ -5,7 +5,7 @@ if [ -z ${install_base} ]; then
 fi
 
 extension_dir=$(php-config --extension-dir)
-config_dir=$(php-config --prefix)/etc/conf.d
+config_dir=$(php-config --ini-dir)
 
 cd ${install_base}/local/src
 # install php-memcached
@@ -25,6 +25,7 @@ curl \
 mv php-memcached* php-memcached
 cd php-memcached
 
+# configure and compile
 phpize
 ./configure --enable-memcached --with-libmemcached-dir --disable-memcached-sasl
 make -j$(nproc) > >(tee /info/compile-php-memcached.log) 2> >(tee /info/compile-php-memcached.err >&2)
