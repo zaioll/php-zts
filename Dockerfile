@@ -8,9 +8,8 @@ ENV FPM_SOCKET=1
 COPY install /install/
 RUN /install/_install.sh
 
-COPY run /run/
-RUN /run/_run-preload.sh
-RUN /run/_run.sh
+COPY configure /configure/
+RUN /configure/_run.sh
 
 STOPSIGNAL SIGTERM
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
