@@ -16,8 +16,8 @@ ext_dir=$(php-config --extension-dir)
 all_ext_ini=/etc/php/all-ext.ini
 :>${all_ext_ini}
 for f in ${ext_dir}/*.so; do
-  f=$(basename ${f})
-  if [[ ${f} == "opcache.so" ]] || [[ ${f} == "xdebug.so" ]]; then
+  z=$(basename $f)
+  if [[ $z == "opcache.so" ]] || [[ $z == "xdebug.so" ]]; then
     echo "zend_extension=${f}">>${all_ext_ini}
   else
     echo "extension=${f}">>${all_ext_ini}
