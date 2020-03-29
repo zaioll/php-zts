@@ -1,23 +1,23 @@
 
 DEBIAN_FRONTEND=noninteractive apt-get remove php-cli -y
 
-major=$(echo $VERSION | cut -d. -f1)
-minor=$(echo $VERSION | cut -d. -f2)
+major=$(echo ${php_version} | cut -d. -f1)
+minor=$(echo ${php_version} | cut -d. -f2)
 full_version=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,2}$" | tail -n 1 | cut -d- -f2)
 patch=$(echo $full_version | cut -d. -f3)
 
-install_path=$INSTALL_BASE/local/src
+install_path=${install_base}/local/src
 
-prefix=$INSTALL_BASE
+prefix=${install_base}
 sysconfdir="/etc"
 
-cd $install_path
+cd ${install_path}
 
 curl --progress-bar --max-time 60 --retry-max-time 60 --retry 5 --location https://github.com/php/php-src/archive/php-${full_version}.tar.gz | tar xzf -
 
 echo "install"
 figlet "php"
-echo "version $full_version"
+echo "version ${full_version}"
 
 mv php* php
 cd php
@@ -58,8 +58,8 @@ cd php
    --enable-session \
    --enable-xml \
    --enable-opcache \
-   --with-config-file-path=${sysconfdir}/php/${VERSION} \
-   --with-config-file-scan-dir=${sysconfdir}/php/${VERSION}/conf.d \
+   --with-config-file-path=${sysconfdir}/php/${php_version} \
+   --with-config-file-scan-dir=${sysconfdir}/php/${php_version}/conf.d \
    --enable-cli \
    --enable-maintainer-zts \
    --with-tsrm-pthreads \
@@ -90,23 +90,23 @@ make install
 chmod o+x ${prefix}/bin/phpize 
 chmod o+x ${prefix}/bin/php-config 
 
-mkdir -p ${sysconfdir}/php/${VERSION}/conf.d 
-mkdir -p ${sysconfdir}/php/${VERSION}/fpm 
-mkdir -p ${sysconfdir}/php/${VERSION}/fpm/pool.d 
+mkdir -p ${sysconfdir}/php/${php_version}/conf.d 
+mkdir -p ${sysconfdir}/php/${php_version}/fpm 
+mkdir -p ${sysconfdir}/php/${php_version}/fpm/pool.d 
 rm -R /etc/php-fpm.d /etc/php-fpm.conf.default 
 
-cp ${install_path}/php/php.ini-production ${sysconfdir}/php/${VERSION}/php-cli.ini 
-cp ${install_path}/php/php.ini-production ${sysconfdir}/php/${VERSION}/fpm/php.ini 
-cp ${install_path}/php/sapi/fpm/www.conf ${sysconfdir}/php/${VERSION}/fpm/pool.d/www.conf 
-cp ${install_path}/php/sapi/fpm/php-fpm.conf ${sysconfdir}/php/${VERSION}/fpm/php-fpm.conf
+cp ${install_path}/php/php.ini-production ${sysconfdir}/php/${php_version}/php-cli.ini 
+cp ${install_path}/php/php.ini-production ${sysconfdir}/php/${php_version}/fpm/php.ini 
+cp ${install_path}/php/sapi/fpm/www.conf ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+cp ${install_path}/php/sapi/fpm/php-fpm.conf ${sysconfdir}/php/${php_version}/fpm/php-fpm.conf
 
 if [ ${FPM_SOCKET} -eq 1 ];then
-   sed -i "s#listen = 127\.0\.0\.1\:9000#listen = /run/php/php${major}-fpm.sock#g" ${sysconfdir}/php/${VERSION}/fpm/pool.d/www.conf 
+   sed -i "s#listen = 127\.0\.0\.1\:9000#listen = /run/php/php${major}-fpm.sock#g" ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
 fi
-sed -i 's#;listen.owner = www-data#listen.owner = www-data#g' ${sysconfdir}/php/${VERSION}/fpm/pool.d/www.conf 
-sed -i 's#;listen.group = www-data#listen.group = www-data#g' ${sysconfdir}/php/${VERSION}/fpm/pool.d/www.conf 
-sed -i 's#;listen.mode = www-data#listen.mode = www-mode#g' ${sysconfdir}/php/${VERSION}/fpm/pool.d/www.conf 
-sed -i "s#include=/etc/php-fpm.d/\*\.conf#include=${sysconfdir}/php/${VERSION}/fpm/pool.d/*.conf#g" ${sysconfdir}/php/${VERSION}/fpm/php-fpm.conf
+sed -i 's#;listen.owner = www-data#listen.owner = www-data#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+sed -i 's#;listen.group = www-data#listen.group = www-data#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+sed -i 's#;listen.mode = www-data#listen.mode = www-mode#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+sed -i "s#include=/etc/php-fpm.d/\*\.conf#include=${sysconfdir}/php/${php_version}/fpm/pool.d/*.conf#g" ${sysconfdir}/php/${php_version}/fpm/php-fpm.conf
 
 #tree ${sysconfdir}/php
 #tree $(php-config --includedir)

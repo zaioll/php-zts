@@ -2,8 +2,8 @@ FROM zaioll/debian:stretch
 
 LABEL maintener 'Láyro Cristofér <zaioll@protonmail.com>'
 
-ENV VERSION=7.4
 ENV FPM_SOCKET=1
+ENV php_version=7.4
 
 COPY install /install/
 RUN /install/_install.sh
