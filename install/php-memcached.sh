@@ -9,13 +9,20 @@ config_dir=$(php-config --prefix)/etc/conf.d
 
 cd ${install_base}/local/src
 # install php-memcached
-branch_memcached="v3.1.5"
+branch_memcached="$(git ls-remote --tags https://github.com/php-memcached-dev/php-memcached.git | egrep -o 'v?[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,}$' | tail -n 1)"
 
 echo "install"
 figlet "php-memcached"
 echo "from ${branch_memcached} branch"
 
-git clone https://github.com/php-memcached-dev/php-memcached.git --branch ${branch_memcached} --single-branch
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location https://github.com/php-memcached-dev/php-memcached/archive/${branch_memcached}.tar.gz
+
+mv php-memcached* php-memcached
 cd php-memcached
 
 phpize
