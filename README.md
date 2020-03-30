@@ -1,3 +1,6 @@
+![GitHub](https://img.shields.io/github/license/:zaioll/:php-zts)
+![Twitter Follow](https://img.shields.io/twitter/follow/zaioll?label=follow&style=social)
+
 # PHP-ZTS Docker image
 
 PHP is a popular general-purpose scripting language that is especially suited to
