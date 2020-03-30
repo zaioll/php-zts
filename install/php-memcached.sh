@@ -20,7 +20,7 @@ curl \
   --max-time 60 \
   --retry-max-time 60 \
   --retry 5 \
-  --location https://github.com/php-memcached-dev/php-memcached/archive/${branch_memcached}.tar.gz
+  --location "https://github.com/php-memcached-dev/php-memcached/archive/${branch_memcached}.tar.gz" | tar xzf -
 
 mv php-memcached* php-memcached
 cd php-memcached
