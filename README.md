@@ -10,7 +10,7 @@ The PHP manual is available at [php.net/docs](https://php.net/docs).
 
 ## Docker image
 
-### Possible Versions
+### Possible PHP versions
 
 At every compilation, the last **patch** version is fetched.
 
@@ -284,4 +284,6 @@ When running docker image as a iteractive form, the `/run/start.sh` shell script
 
 MIT
 
-<a href="https://www.buymeacoffee.com/layro" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/lato-blue.png" alt="Buy Me A Coffee" style="height: 20px !important;width: 80px !important;" ></a>
+---
+
+<a href="https://www.buymeacoffee.com/layro" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/lato-blue.png" alt="Buy Me A Coffee" height="30px" width="120px"></a>
