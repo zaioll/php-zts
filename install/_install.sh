@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export INSTALL_BASE=/usr
+export install_base=/usr
 mkdir /info
 
 /install/pre-install.sh
