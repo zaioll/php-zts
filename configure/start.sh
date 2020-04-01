@@ -5,6 +5,21 @@ config_dir=$(php-config --ini-dir)
 pool_conf=$(php-config --ini-path)/fpm/pool.d/www.conf
 major=$(echo ${php_version} | cut -d. -f1)
 
+# control opcache lib load
+ENABLE_OPCACHE=${ENABLE_OPCACHE:-0}
+if [  ${ENABLE_OPCACHE} -eq 1 ]; then
+    echo "[opcache]" > ${config_dir}/10-opcache.ini
+    echo "zend_extension=${extension_dir}/opcache.so" >> ${config_dir}/10-opcache.ini
+    echo "opcache.enable=1" >> ${config_dir}/10-opcache.ini
+    echo "opcache.enable_cli=0" >> ${config_dir}/10-opcache.ini
+    echo "opcache.validate_timestamps=0" >> ${config_dir}/10-opcache.ini
+    echo "opcache.max_accelerated_files=65406" >> ${config_dir}/10-opcache.ini
+    echo "opcache.memory_consumption=256" >> ${config_dir}/10-opcache.ini
+    echo "opcache.interned_strings_buffer=12" >> ${config_dir}/10-opcache.ini
+    echo "opcache.fast_shutdown=1" >> ${config_dir}/10-opcache.ini
+    echo "opcache.enable_file_override=1" >> ${config_dir}/10-opcache.ini
+fi
+
 if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
     sed -i "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
 else
