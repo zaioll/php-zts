@@ -29,4 +29,5 @@ cd parallel
 phpize
 ./configure --enable-parallel  --enable-parallel-coverage
 make -j$(nproc) > >(tee /info/compile-php-parallel.log) 2> >(tee /info/compile-php-parallel.err >&2)
-cp modules/parallel.so ${extension_dir}/parallel.so
+make install
+#cp modules/parallel.so ${extension_dir}/parallel.so

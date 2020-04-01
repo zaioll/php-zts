@@ -22,6 +22,13 @@ else
     sed -i -E -e "s|env[XDEBUG_CONFIG]=\$XDEBUG_CONFIG||g" ${pool_conf}
 fi
 
+# control parallel lib load
+ENABLE_PARALLEL=${ENABLE_PARALLEL:-1}
+if [ ${ENABLE_PARALLEL} -eq 1 ]; then
+    echo "[parallel]" > ${config_dir}/20-parallel.ini
+    echo "extension=${extension_dir}/parallel.so" > ${config_dir}/20-parallel.ini
+fi
+
 # configure supervisor
 sed -i -E -e "s|command=|command=/usr/sbin/php-fpm --fpm-config /etc/php/${php_version}/fpm/php-fpm.conf --pid /run/php/php-fpm.pid -F|g" /etc/supervisor/conf.d/supervisord.conf
 
