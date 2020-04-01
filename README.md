@@ -1,4 +1,4 @@
-![GitHub](https://img.shields.io/github/license/:zaioll/:php-zts)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Twitter Follow](https://img.shields.io/twitter/follow/zaioll?label=follow&style=social)
 
 # PHP-ZTS Docker image
