@@ -1,3 +1,4 @@
+![PHP Version](https://img.shields.io/badge/php-7.4-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Twitter Follow](https://img.shields.io/twitter/follow/zaioll?label=follow&style=social)
 
