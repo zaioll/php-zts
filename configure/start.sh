@@ -20,12 +20,14 @@ if [  ${ENABLE_OPCACHE} -eq 1 ]; then
     echo "opcache.enable_file_override=1" >> ${config_dir}/10-opcache.ini
 fi
 
+ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
 if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
     sed -i "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
 else
     sed -i "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
 fi
 
+ENABLE_XDEBUG=${ENABLE_XDEBUG:-0}
 if [ ${ENABLE_XDEBUG} -eq 1 ]; then
     echo "[Xdebug]" > "${config_dir}/20-xdebug.ini"
     echo "zend_extension=${extension_dir}/xdebug.so" >> ${config_dir}/20-xdebug.ini
