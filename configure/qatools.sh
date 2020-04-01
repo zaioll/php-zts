@@ -12,7 +12,7 @@ if [ -e composer.phar ];then
     mv composer.phar /usr/local/bin/composer
     if [ -e /usr/local/bin/composer ];then
         chmod +x /usr/local/bin/composer
-        printf "\n%20s: Composer installed at '/usr/local/bin/composer'"
+        printf "\n%20s: Composer installed at '/usr/local/bin/composer'."
     else
         printf "\n%20s: Composer install failed!"
     fi
@@ -24,6 +24,8 @@ if [ -e composer.phar ];then
 
     printf "\n%20s: Installing 'prestissimo' composer plugin...\n"
     /usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo -v
+    printf "\n%20s: Installing 'phpbench'...\n"
+    /usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require phpbench/phpbench @dev -v
 else
     printf "\n%20s: Composer download failed..."
 fi
