@@ -1,9 +1,9 @@
 
 major=$(echo ${php_version} | cut -d. -f1)
 minor=$(echo ${php_version} | cut -d. -f2)
-full_version=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,2}$" | tail -n 1 | cut -d- -f2)
-patch=$(echo ${full_version} | cut -d. -f3)
+patch=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,}$" | cut -d. -f3 | sort -g | tail -n 1)
 
+full_version="${php_version}.${patch}"
 install_path=${install_base}/local/src
 
 prefix=${install_base}
@@ -30,9 +30,13 @@ cd php
    --sysconfdir=${sysconfdir} \
    --includedir=${prefix}/share \
    --with-layout=GNU \
+   --with-fpm-user=www-data \
+   --with-fpm-group=www-data \
+   --with-config-file-path=${sysconfdir}/php/${php_version} \
+   --with-config-file-scan-dir=${sysconfdir}/php/${php_version}/conf.d \
    --with-bz2 \
-   --with-zlib-dir \
    --with-zlib \
+   --enable-zip \
    --disable-cgi \
    --enable-soap \
    --enable-intl \
@@ -50,42 +54,41 @@ cd php
    --with-pspell \
    --with-enchant \
    --with-gettext \
+   --with-gd \
    --enable-exif \
+   --with-jpeg-dir \
+   --with-png-dir \
+   --with-freetype-dir \
    --with-xsl \
    --enable-bcmath \
    --enable-mbstring \
    --enable-calendar \
    --enable-simplexml \
    --enable-json \
+   --enable-hash \
    --enable-session \
    --enable-xml \
+   --enable-wddx \
    --enable-opcache \
-   --with-config-file-path=${sysconfdir}/php/${php_version} \
-   --with-config-file-scan-dir=${sysconfdir}/php/${php_version}/conf.d \
+   --with-pcre-regex \
    --enable-cli \
    --enable-maintainer-zts \
    --with-tsrm-pthreads \
    --enable-debug \
    --enable-fpm \
-   --enable-gd \
-   --with-pgsql \
+   --with-pear \
    --disable-rpath \
    --enable-sysvsem \
    --enable-sysvshm \
    --enable-inline-optimization \
    --enable-mbregex \
    --with-mhash \
-   --with-zip \
-   --with-jpeg \
+   --with-libzip \
    --with-imap \
    --with-imap-ssl \
    --with-kerberos \
-   --with-xmlrpc \
-   --with-pear \
-   --with-mysql-sock=/var/run/mysqld/mysqld.sock \
-   --with-fpm-user=www-data \
-   --with-fpm-group=www-data 
-
+   --with-xmlrpc
+ 
 # compile and install
 make -j$(nproc) > >(tee /info/compile-${PWD##*/}.log) 2> >(tee /info/compile-${PWD##*/}.err >&2) 
 make install 
@@ -103,10 +106,10 @@ cp ${install_path}/php/php.ini-production ${sysconfdir}/php/${php_version}/fpm/p
 cp ${install_path}/php/sapi/fpm/www.conf ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
 cp ${install_path}/php/sapi/fpm/php-fpm.conf ${sysconfdir}/php/${php_version}/fpm/php-fpm.conf
 
-sed -i 's#;listen.owner = www-data#listen.owner = www-data#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
-sed -i 's#;listen.group = www-data#listen.group = www-data#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
-sed -i 's#;listen.mode = www-data#listen.mode = www-mode#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
-sed -i "s#include=/etc/php-fpm.d/\*\.conf#include=${sysconfdir}/php/${php_version}/fpm/pool.d/*.conf#g" ${sysconfdir}/php/${php_version}/fpm/php-fpm.conf
+sed -i -E 's#;listen.owner = (nobody|www-data)#listen.owner = www-data#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+sed -i -E 's#;listen.group = (nobody|www-data)#listen.group = www-data#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+sed -i -E 's#;listen.mode = www-data#listen.mode = www-mode#g' ${sysconfdir}/php/${php_version}/fpm/pool.d/www.conf 
+sed -i -E "s#include=/etc/php-fpm.d/\*\.conf#include=${sysconfdir}/php/${php_version}/fpm/pool.d/*.conf#g" ${sysconfdir}/php/${php_version}/fpm/php-fpm.conf
 
 # test php install
 #make -j$(nproc) test

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 extension_dir=$(php-config --extension-dir)
-config_dir=$(php-config --ini-dir)
-pool_conf=$(php-config --ini-path)/fpm/pool.d/www.conf
+config_dir=/etc/php/${php_version}/conf.d
+pool_conf=/etc/php/${php_version}/fpm/pool.d/www.conf
 major=$(echo ${php_version} | cut -d. -f1)
 
 # control opcache lib load

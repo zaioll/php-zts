@@ -5,7 +5,6 @@ if [ -z ${install_base} ]; then
 fi
 
 extension_dir=$(php-config --extension-dir)
-config_dir=$(php-config --ini-dir)
 
 # install php-mongodb
 cd ${install_base}/local/src

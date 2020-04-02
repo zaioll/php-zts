@@ -5,8 +5,6 @@ if [ -z ${install_base} ]; then
 fi
 
 extension_dir=$(php-config --extension-dir)
-config_dir="$(php-config --ini-dir)"
-pool_conf=$(php-config --ini-path)/fpm/pool.d/www.conf
 
 # install php-xdebug
 cd ${install_base}/local/src

@@ -2,7 +2,7 @@ FROM zaioll/debian:stretch
 
 LABEL maintener 'Láyro Chrystofer <zaioll@protonmail.com>'
 
-ENV php_version=7.4
+ENV php_version=7.2
 
 COPY install /install/
 RUN /install/_install.sh
