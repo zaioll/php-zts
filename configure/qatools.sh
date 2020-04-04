@@ -29,3 +29,17 @@ if [ -e composer.phar ];then
 else
     printf "\n%20s: Composer download failed..."
 fi
+
+printf "\n%20s: try to install phive..."
+wget -O phive.phar https://phar.io/releases/phive.phar
+wget -O phive.phar.asc https://phar.io/releases/phive.phar.asc
+gpg --keyserver pool.sks-keyservers.net --recv-keys 0x9D8A98B29B2D5D79
+gpg --verify phive.phar.asc phive.phar
+
+if [ -e phive.phar ]; then
+    chmod +x phive.phar
+    mv phive.phar /usr/local/bin/phive
+    printf "\n%20s: Phive installed at '/usr/local/bin/phive'."
+else
+    printf "\n%20s: Phive download failed..."
+fi

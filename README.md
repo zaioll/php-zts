@@ -70,6 +70,7 @@ When running docker image as a iteractive form, the `/run/start.sh` shell script
 - [Composer](https://getcomposer.org/) for dependency management in PHP.
    - [Prestissimo](https://github.com/hirak/prestissimo) plugin.
 - [PhpBench](https://github.com/phpbench/phpbench) tool.
+- [Phive](https://phar.io/)
 
 ### Installed libs
 
