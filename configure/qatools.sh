@@ -18,14 +18,14 @@ if [ -e composer.phar ];then
     fi
 
     printf "\n%20s: Setting COMPOSER_ALLOW_SUPERUSER env var to '1'."
-    export COMPOSER_ALLOW_SUPERUSER=1
+    su ${usuario} -c "export COMPOSER_ALLOW_SUPERUSER=1"
     printf "\n%20s: Setting COMPOSER_ALLOW_XDEBUG env var to '0'."
-    export COMPOSER_ALLOW_XDEBUG=0
-
+    su ${usuario} -c "export COMPOSER_ALLOW_XDEBUG=0 "
+    chown ${usuario}:${usuario} -R ${HOME}
     printf "\n%20s: Installing 'prestissimo' composer plugin...\n"
-    /usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo -v
+    su ${usuario} -c "/usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo -v"
     printf "\n%20s: Installing 'phpbench'...\n"
-    /usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require phpbench/phpbench @dev -v
+    su ${usuario} -c "/usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require phpbench/phpbench @dev -v"
 else
     printf "\n%20s: Composer download failed..."
 fi
