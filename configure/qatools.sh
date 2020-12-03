@@ -7,7 +7,8 @@ curl \
     --max-time 60 \
     --retry-max-time 60 \
     --retry 5 \
-    --location https://getcomposer.org/installer | php &> /dev/null
+    --output composer.phar \
+    --location https://getcomposer.org/composer-1.phar | php &> /dev/null
 if [ -e composer.phar ];then
     mv composer.phar /usr/local/bin/composer
     if [ -e /usr/local/bin/composer ];then
