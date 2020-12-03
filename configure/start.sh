@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "Start PHP"
 extension_dir=$(php-config --extension-dir)
 config_dir=/etc/php/${php_version}/conf.d
 pool_conf=/etc/php/${php_version}/fpm/pool.d/www.conf
@@ -22,9 +22,11 @@ fi
 
 ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
 if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
-    sed -i "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
+    echo "Enable PHP-FPM socket"
+    sed -i -E -e "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
 else
-    sed -i "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
+    echo "Disable PHP-FPM socket"
+    sed -i -E -e "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
 fi
 
 ENABLE_XDEBUG=${ENABLE_XDEBUG:-0}
