@@ -22,8 +22,6 @@ if [ -e composer.phar ];then
     printf "\n%20s: Setting COMPOSER_ALLOW_XDEBUG env var to '0'."
     su ${usuario} -c "export COMPOSER_ALLOW_XDEBUG=0 "
     chown ${usuario}:${usuario} -R ${HOME}
-    printf "\n%20s: Installing 'prestissimo' composer plugin...\n"
-    su ${usuario} -c "/usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo -v"
     printf "\n%20s: Installing 'phpbench'...\n"
     su ${usuario} -c "/usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require phpbench/phpbench @dev -v"
 else
