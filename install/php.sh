@@ -32,6 +32,7 @@ cd php
    --with-layout=GNU \
    --with-bz2 \
    --with-zlib-dir \
+   --with-ffi \
    --with-zlib \
    --disable-cgi \
    --enable-soap \

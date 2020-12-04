@@ -41,4 +41,5 @@ libfbclient2
 libfcgi0ldbl
 libonig4
 libssl1.1
+libffi6
 libzip4

@@ -10,6 +10,7 @@ autoconf
 pkg-config
 libbison-dev
 libpq-dev
+libffi-dev
 libgmp-dev
 libzmq3-dev
 libedit-dev

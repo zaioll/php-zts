@@ -219,6 +219,7 @@ When running docker image as a iteractive form, the `/run/start.sh` shell script
 
 | Extension                     | Version   |
 | :---:                         |  :---:    |
+| FFI                           |           |
 | Core                          | 7.4.4     |
 | date                          | 7.4.4     |
 | libxml                        | 7.4.4     |
