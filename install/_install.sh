@@ -8,6 +8,7 @@ mkdir /info
 /install/php.sh
 /install/php-parallel.sh
 /install/php-decimal.sh
+/install/php-swoole.sh
 /install/php-xdebug.sh
 /install/php-memcached.sh
 /install/php-mongodb.sh

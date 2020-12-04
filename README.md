@@ -284,6 +284,7 @@ When running docker image as a iteractive form, the `/run/start.sh` shell script
 ### Modules
 
 - [Parallel](https://https://github.com/krakjoe/parallel.git)
+- [Swoole](https://www.swoole.co.uk/)
 - [Decimal](https://php-decimal.io/)
 - [Xdebug](https://github.com/xdebug/xdebug.git)
 - [Memcached](https://github.com/php-memcached-dev/php-memcached.git)
