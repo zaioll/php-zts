@@ -1,4 +1,3 @@
-
 major=$(echo ${php_version} | cut -d. -f1)
 minor=$(echo ${php_version} | cut -d. -f2)
 full_version=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,2}$" | tail -n 1 | cut -d- -f2)
@@ -12,17 +11,28 @@ sysconfdir="/etc"
 cd ${install_path}
 
 echo "Download PHP ${full_version}..."
-# Download PHP
-curl \
-   --progress-bar \
-   --max-time 60 \
-   --retry-max-time 60 \
-   --retry 5 \
-   --location https://github.com/php/php-src/archive/php-${full_version}.tar.gz | tar xzf -
+if [ ! -d "${install_path}/php" ];then
+   # Download PHP
+   curl \
+      --progress-bar \
+      --max-time 60 \
+      --retry-max-time 60 \
+      --retry 5 \
+      --location https://github.com/php/php-src/archive/php-${full_version}.tar.gz | tar xzf -
+   
+   mv php* php
+   if [ ! -d php ]; then
+      echo "Falha ao baixar PHP ${full_version}!"
+      exit 1;
+   fi
+fi
 
-echo "Try to compile and install PHP ${full_version}..."
-mv php* php
 cd php
+echo "Try to compile and install PHP ${full_version}..."
+
+export PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2"
+export PHP_CPPFLAGS="${PHP_CFLAGS}"
+export PHP_LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie"
 
 ./buildconf --force
 ./configure \
@@ -30,22 +40,33 @@ cd php
    --sysconfdir=${sysconfdir} \
    --includedir=${prefix}/share \
    --with-layout=GNU \
-   --with-bz2 \
-   --with-zlib-dir \
-   --with-ffi \
-   --with-zlib \
    --disable-cgi \
-   --enable-soap \
-   --enable-intl \
+   --with-ffi \
    --with-openssl \
-   --with-readline \
    --with-curl \
-   --enable-ftp \
    --with-pdo-pgsql=pgsql \
    --enable-mysqlnd \
    --with-mysqli=mysqlnd \
    --with-pdo-mysql=mysqlnd \
-   --with-pdo-firebird \
+   --enable-bcmath \
+   --enable-fpm \
+   --with-config-file-path=${sysconfdir}/php/${php_version} \
+   --with-config-file-scan-dir=${sysconfdir}/php/${php_version}/conf.d \
+   --enable-cli \
+   --with-pgsql \
+   --with-mhash \
+   --without-pear \
+   --with-gmp \
+   --with-bz2 \
+   --with-webp \
+   --with-xpm \
+   --with-pcre-jit \
+   --with-zlib-dir \
+   --with-zlib \
+   --enable-soap \
+   --enable-intl \
+   --with-readline \
+   --enable-ftp \
    --enable-sockets \
    --enable-pcntl \
    --with-pspell \
@@ -53,36 +74,23 @@ cd php
    --with-gettext \
    --enable-exif \
    --with-xsl \
-   --enable-bcmath \
    --enable-mbstring \
    --enable-calendar \
    --enable-simplexml \
-   --enable-json \
    --enable-session \
-   --enable-xml \
    --enable-opcache \
-   --with-config-file-path=${sysconfdir}/php/${php_version} \
-   --with-config-file-scan-dir=${sysconfdir}/php/${php_version}/conf.d \
-   --enable-cli \
-   --enable-maintainer-zts \
-   --with-tsrm-pthreads \
-   --enable-debug \
-   --enable-fpm \
-   --enable-gd \
-   --with-pgsql \
-   --disable-rpath \
-   --enable-sysvsem \
-   --enable-sysvshm \
-   --enable-inline-optimization \
-   --enable-mbregex \
-   --with-mhash \
    --with-zip \
    --with-jpeg \
    --with-imap \
    --with-imap-ssl \
    --with-kerberos \
-   --with-xmlrpc \
-   --with-pear \
+   --enable-xml \
+   --enable-gd \
+   --disable-rpath \
+   --enable-sysvsem \
+   --enable-sysvshm \
+   --enable-mbregex \
+   --with-sodium \
    --with-mysql-sock=/var/run/mysqld/mysqld.sock \
    --with-fpm-user=www-data \
    --with-fpm-group=www-data 

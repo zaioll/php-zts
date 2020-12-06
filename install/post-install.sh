@@ -1,3 +1,7 @@
+if [ -z $(type -P php) ];then
+  exit 1;
+fi
+
 
 apt-get purge -y $(cat /install/_dev-packages | tr "\n" " ")
 apt-get clean -y

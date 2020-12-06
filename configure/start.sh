@@ -18,17 +18,41 @@ if [  ${ENABLE_OPCACHE} -eq 1 ]; then
     echo "opcache.interned_strings_buffer=12" >> ${config_dir}/10-opcache.ini
     echo "opcache.fast_shutdown=1" >> ${config_dir}/10-opcache.ini
     echo "opcache.enable_file_override=1" >> ${config_dir}/10-opcache.ini
+    ENABLE_JIT=${ENABLE_JIT:-1}
+    if [  ${ENABLE_JIT} -eq 1 ]; then
+        # reference: https://www.stitcher.io/blog/php-8-jit-setup
+        echo "opcache.jit=1255" >> ${config_dir}/10-opcache.ini
+        echo "opcache.jit_buffer_size=200M" >> ${config_dir}/10-opcache.ini
+    fi
+fi
+
+ENABLE_REDIS=${ENABLE_REDIS:-0}
+if [ ${ENABLE_REDIS} -eq 1 ] && [ -f ${extension_dir}/redis.so ]; then
+    echo "[redis]" > ${config_dir}/10-redis.ini
+    echo "extension=${extension_dir}/redis.so" >> ${config_dir}/10-redis.ini
+fi
+
+ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-0}
+if [ ${ENABLE_MEMCACHED} -eq 1 ] && [ -f ${extension_dir}/memcached.so ]; then
+    echo "[memcached]" > ${config_dir}/20-memcached.ini
+    echo "extension=${extension_dir}/memcached.so" >> ${config_dir}/20-memcached.ini
+fi
+
+ENABLE_MONGODB=${ENABLE_MONGODB:-0}
+if [ ${ENABLE_MONGODB} -eq 1 ] && [ -f ${extension_dir}/mongodb.so ]; then
+    echo "[mongodb]" > ${config_dir}/20-mongodb.ini
+    echo "extension=${extension_dir}/mongodb.so" >> ${config_dir}/20-mongodb.ini
 fi
 
 ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
-if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
+if [ ${ENABLE_FPM_SOCKET} -eq 1 ] && [ -n $(type -P php-fpm) ];then
     sed -i "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
 else
     sed -i "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
 fi
 
 ENABLE_XDEBUG=${ENABLE_XDEBUG:-0}
-if [ ${ENABLE_XDEBUG} -eq 1 ]; then
+if [ ${ENABLE_XDEBUG} -eq 1 ] && [ -f ${extension_dir}/xdebug.so ]; then
     echo "[Xdebug]" > "${config_dir}/20-xdebug.ini"
     echo "zend_extension=${extension_dir}/xdebug.so" >> ${config_dir}/20-xdebug.ini
     echo "env[XDEBUG_CONFIG]=\$XDEBUG_CONFIG" >> ${pool_conf}
@@ -39,11 +63,17 @@ else
     sed -i -E -e "s|env[XDEBUG_CONFIG]=\$XDEBUG_CONFIG||g" ${pool_conf}
 fi
 
+ENABLE_SWOOLE=${ENABLE_SWOOLE:-0}
+if [ ${ENABLE_SWOOLE} -eq 1 ] && [ -f ${extension_dir}/swoole.so ]; then
+    echo "[swoole]" > ${config_dir}/20-swoole.ini
+    echo "extension=${extension_dir}/swoole.so" >> ${config_dir}/20-swoole.ini
+fi
+
 # control parallel lib load
-ENABLE_PARALLEL=${ENABLE_PARALLEL:-1}
-if [ ${ENABLE_PARALLEL} -eq 1 ]; then
+ENABLE_PARALLEL=${ENABLE_PARALLEL:-0}
+if [ ${ENABLE_PARALLEL} -eq 1 ] && [ -f "${extension_dir}/parallel.so" ]; then
     echo "[parallel]" > ${config_dir}/20-parallel.ini
-    echo "extension=${extension_dir}/parallel.so" > ${config_dir}/20-parallel.ini
+    echo "extension=${extension_dir}/parallel.so" >> ${config_dir}/20-parallel.ini
 fi
 
 # configure supervisor

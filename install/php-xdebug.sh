@@ -3,6 +3,9 @@
 if [ -z ${install_base} ]; then
   exit 1
 fi
+if [ -z $(type -P php) ];then
+  exit 1;
+fi
 
 extension_dir=$(php-config --extension-dir)
 config_dir="$(php-config --ini-dir)"
@@ -24,9 +27,14 @@ curl \
   --location https://github.com/xdebug/xdebug/archive/${version_xdebug}.tar.gz | tar xzf -
 
 mv xdebug* xdebug
+if [ ! -d xdebug ];then
+  echo "Falha ao baixar XDebug!"
+  exit 1;
+fi
 cd xdebug
 
 phpize
 ./configure --enable-xdebug
 make -j$(nproc) > >(tee /info/compile-php-xdebug.log) 2> >(tee /info/compile-php-xdebug.err >&2)
+
 cp modules/xdebug.so ${extension_dir}/xdebug.so

@@ -43,3 +43,6 @@ libonig4
 libssl1.1
 libffi6
 libzip4
+libwebp6
+libxpm4
+libsodium18

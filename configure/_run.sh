@@ -6,6 +6,9 @@
 
   #touch /.initialized
 #fi
+if [ -z $(type -P php) ];then
+  exit 1;
+fi
 
 /configure/_run-preload.sh
 
