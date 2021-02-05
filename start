@@ -54,18 +54,26 @@ remove_opcache_ini() {
 }
 
 # control opcache lib load
-ENABLE_OPCACHE=${ENABLE_OPCACHE:-0}
-if [  ${ENABLE_OPCACHE} -eq 1 ]  && [ -f ${extension_dir}/opcache.so ]; then
-    echo "[opcache]" > ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "zend_extension=${extension_dir}/opcache.so" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.enable=1" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.enable_cli=0" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.validate_timestamps=0" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.max_accelerated_files=65406" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.memory_consumption=256" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.interned_strings_buffer=12" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.fast_shutdown=1" >> ${sapi_confdir}/conf.d/10-opcache.ini
-    echo "opcache.enable_file_override=1" >> ${sapi_confdir}/conf.d/10-opcache.ini
+if [ -f ${extension_dir}/opcache.so ]; then
+    qtd_php_files=65406
+    if [ -d /var/www/html ];then
+        qtd_php_files=$(find /var/www/html -name "*.php" | wc -l)
+    fi
+    max_accelerated_files=$(( ${qtd_php_files} / 100 + ${qtd_php_files} ))
+    DEFAULT="enable=1 enable_cli=0 memory_consumption=256 interned_strings_buffer=16 validate_timestamps=0 revalidate_freq=0 enable_file_override=1 save_comments=0 error_log='/var/log/php-opcache-error.log' max_accelerated_files=${max_accelerated_files} fast_shutdown=1"
+    OPCACHE_CONF=${OPCACHE_CONF:-${DEFAULT}}
+    if [ "${OPCACHE_CONF}" = "off" ]; then
+        remove_opcache_ini
+    else
+        if [ ! -f "${sapi_confdir}/conf.d/10-opcache.ini" ];then
+            echo "[opcache]" > ${sapi_confdir}/conf.d/10-opcache.ini
+            echo "zend_extension=${extension_dir}/opcache.so" >> ${sapi_confdir}/conf.d/10-opcache.ini
+        fi
+        opcache_confs=($(echo ${OPCACHE_CONF}))
+        for conf in "${opcache_confs[@]}"; do
+            echo "opcache.${conf}" >> ${sapi_confdir}/conf.d/10-opcache.ini
+        done
+    fi
 fi
 
 ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
