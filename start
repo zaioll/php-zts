@@ -85,14 +85,22 @@ else
     sed -i -E -e "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
 fi
 
-ENABLE_XDEBUG=${ENABLE_XDEBUG:-0}
-if [ ${ENABLE_XDEBUG} -eq 1 ] && [ -f ${extension_dir}/xdebug.so ]; then
-    echo "[Xdebug]" > "${sapi_confdir}/conf.d/20-xdebug.ini"
-    echo "zend_extension=${extension_dir}/xdebug.so" >> ${sapi_confdir}/conf.d/20-xdebug.ini
-    echo "env[XDEBUG_CONFIG]=\$XDEBUG_CONFIG" >> ${pool_conf}
-else
-    remove_xdebug_ini
-    sed -i -E -e "s|env[XDEBUG_CONFIG]=\$XDEBUG_CONFIG||g" ${pool_conf}
+if [ -f ${extension_dir}/xdebug.so ]; then
+    hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
+    DEFAULT="mode=develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
+    XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
+    if [ "${XDEBUG_CONFIG}" = "off" ]; then
+        remove_xdebug_ini
+    else
+        if [ ! -f "${sapi_confdir}/conf.d/20-xdebug.ini" ]; then
+            echo "[Xdebug]" > "${sapi_confdir}/conf.d/20-xdebug.ini"
+            echo "zend_extension=${extension_dir}/xdebug.so" >> ${sapi_confdir}/conf.d/20-xdebug.ini
+        fi
+        confs=($(echo ${XDEBUG_CONFIG}))
+        for conf in "${confs[@]}"; do
+            echo "xdebug.${conf}" >> ${sapi_confdir}/conf.d/20-xdebug.ini
+        done
+    fi
 fi
 
 # control parallel lib load
