@@ -12,5 +12,7 @@ RUN /install/_install.sh
 COPY configure /configure/
 RUN /configure/_run.sh
 
+COPY start /run/php/
+
 STOPSIGNAL SIGTERM
-CMD ["/bin/bash", "/run/start.sh"]
+CMD ["/bin/bash", "/run/php/start"]

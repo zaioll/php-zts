@@ -28,9 +28,6 @@ printf "\n"
 # Create php dir to create php-fpm socket file and php-fpm pid
 mkdir /run/php
 
-chmod +x /configure/start.sh
-mv /configure/start.sh /run/start.sh
-
 mv /configure/supervisord.conf /etc/supervisor/conf.d
 
 # limpa
