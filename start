@@ -184,14 +184,15 @@ if [ -f ${extension_dir}/redis.so ]; then
 fi
 
 if [ -f ${extension_dir}/memcached.so ]; then 
-    ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-1}
+    ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-0}
     if [ ${ENABLE_MEMCACHED} -eq 1 ]; then
         echo "[memcached]" > ${sapi_confdir}/conf.d/20-memcached.ini
         echo "extension=${extension_dir}/memcached.so" > ${sapi_confdir}/conf.d/20-memcached.ini
     fi
 fi
+
 if [ -f ${extension_dir}/mongodb.so ]; then
-    ENABLE_MONGODB=${ENABLE_MONGODB:-1}
+    ENABLE_MONGODB=${ENABLE_MONGODB:-0}
     if [ ${ENABLE_MONGODB} -eq 1 ]; then
         echo "[mongodb]" > ${sapi_confdir}/conf.d/20-mongodb.ini
         echo "extension=${extension_dir}/mongodb.so" > ${sapi_confdir}/conf.d/20-mongodb.ini
