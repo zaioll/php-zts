@@ -12,6 +12,8 @@ RUN /install/_install.sh
 COPY configure /configure/
 RUN /configure/_run.sh
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y nginx
+
 COPY start /run/php/
 
 STOPSIGNAL SIGTERM
