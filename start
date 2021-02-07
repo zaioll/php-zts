@@ -35,6 +35,20 @@ if [ ! -f ${sapi_confdir}/fpm/php.ini ] || [ ! -f ${cli_confdir}/${cli_ini} ];th
     exit 1 
 fi
 
+# Atualiza configuração. Descomenta se estiver comentada
+update_config() {
+    file="${1}"
+    conf_list="${2}"
+    if [ -f "${file}" ] && [ -n "${conf_list}" ]; then
+        confs=($(echo ${conf_list}))
+        for conf in "${confs[@]}"; do
+            param=$(echo ${conf} | sed -E -n -e 's/^([0-9\.a-z\_]+)\=.*/\1/p')
+            valor=$(echo ${conf} | sed -E -n -e 's/^[0-9a-z\.\_]+\=(.+)$/\1/p')
+            sed -i -E -e "s#^\;?\s*${param}\s*\=\s*([^\n]+|$)#${param} = ${valor}#" ${file}
+        done
+    fi
+}
+
 remove_xdebug_ini() {
     if [ -f ${cli_confdir}/conf.d/20-xdebug.ini ]; then
         rm -f ${cli_confdir}/conf.d/20-xdebug.ini
