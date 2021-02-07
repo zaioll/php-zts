@@ -24,8 +24,6 @@ if [ "${APP_ENV}" != "prod" ] && [ "${APP_ENV}" != "debug" ] && [ "${APP_ENV}" !
     APP_ENV="debug"
 fi
 
-max_execution_time=$((60*8))
-
 if [ ! -d ${sapi_confdir} ] || [ ! -d ${cli_confdir} ];then
     echo "Diretórios de configurações PHP inexistentes! \n"
     exit 1 
@@ -66,6 +64,50 @@ remove_opcache_ini() {
         rm -f ${sapi_confdir}/conf.d/10-opcache.ini
     fi
 }
+
+size_unit="k"
+time_unit="s"
+
+file_descriptors=$(ulimit -n) # worker_connections
+qtd_cpus=$(sed -n '/processor/p' /proc/cpuinfo | wc -l) # worker_processes
+mempage=$(getconf PAGESIZE)
+mempage_size=$((${mempage} / 1024)) # B => k
+
+# PHP.ini
+max_execution_time=$((30*8)) # Facilitar debug
+output_buffering=${mempage} # mempage_size in Bytes
+max_input_vars=4000
+memory_limit=128 # Megabytes
+
+# Libera captura de variáveis de ambiente
+sed -E -i -e 's/^\;clear_env/clear_env/' ${pool_conf}
+
+DEFAULT_PHP_INI=''
+if [ "${APP_ENV}" = "prod" ]; then
+    max_execution_time=10 # impede scripts bosta
+    memory_limit=$((${memory_limit} * 10 / 100)) # 10%. Impede scripts bosta
+
+    DEFAULT_PHP_INI="cgi.fix_pathinfo=0 display_startup_errors=Off memory_limit=${memory_limit}M zend.assertions=-1 report_memleaks=Off display_errors=Off log_errors=Off expose_php=Off max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=On"
+fi
+if [ "${APP_ENV}" = "dev" ]; then
+    DEFAULT_PHP_INI="cgi.fix_pathinfo=0 display_startup_errors=On implicit_flush=On memory_limit=${memory_limit}M display_errors=On log_errors=On expose_php=On max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=Off"
+fi
+
+# Maximum time in seconds a script is allowed to parse input data, like POST and GET.
+# Timing begins at the moment PHP is invoked at the server and ends when execution begins.
+max_input_time=$((${max_execution_time} * 10 / 100)) # 10%
+
+if [ -n "${PHP_INI_CONF}" ];then
+    # Concatena
+    PHP_INI_CONF="${DEFAULT_PHP_INI} ${PHP_INI_CONF}"
+else
+    PHP_INI_CONF=${PHP_INI_CONF:-${DEFAULT_PHP_INI}}
+fi
+
+if [ -n "${PHP_INI_CONF}" ];then
+    update_config "${sapi_confdir}/fpm/php.ini" "${PHP_INI_CONF}"
+    update_config ${cli_confdir}/${cli_ini} "${PHP_INI_CONF}"
+fi
 
 # control opcache lib load
 if [ -f ${extension_dir}/opcache.so ]; then
