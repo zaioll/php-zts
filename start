@@ -110,7 +110,7 @@ if [ -n "${PHP_INI_CONF}" ];then
 fi
 
 # control opcache lib load
-if [ -f ${extension_dir}/opcache.so ]; then
+if [[ ( -f ${extension_dir}/opcache.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "prod" ) ]]; then
     qtd_php_files=65406
     if [ -d /var/www/html ];then
         qtd_php_files=$(find /var/www/html -name "*.php" | wc -l)
@@ -141,7 +141,7 @@ else
     sed -i -E -e "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
 fi
 
-if [ -f ${extension_dir}/xdebug.so ]; then
+if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "dev" ) ]]; then
     hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
     DEFAULT="mode=develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
     XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
