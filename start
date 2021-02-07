@@ -295,6 +295,12 @@ if [ "${WEB_SERVER}" == "on" ];then
         # Configura buffers fastcgi 
         #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_request_buffering ${fastcgi_request_buffering};\n\t\tfastcgi_buffer_size ${fastcgi_buffer_size}${size_unit};\n\t\tfastcgi_buffers ${fastcgi_buffers};\n\t\tfastcgi_busy_buffers_size ${fastcgi_busy_buffers_size}${size_unit};\n\t\tfastcgi_temp_file_write_size ${fastcgi_temp_file_write_size}${size_unit};" /etc/nginx/sites-enabled/default
 
+        # Define server name
+        SERVER_NAME=${SERVER_NAME:-'localhost'}
+        if [ -n "${SERVER_NAME}" ]; then
+            sed -E -i -e "s#^\s*server_name [^\s]+\;#\tserver_name ${SERVER_NAME}\;#" /etc/nginx/sites-enabled/default
+        fi
+
         # Define charset site
         sed -E -i -e '/^\s*server \{/a\' -e "\tcharset utf-8\;" /etc/nginx/sites-enabled/default
 
