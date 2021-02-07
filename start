@@ -169,12 +169,20 @@ if [ -f ${extension_dir}/parallel.so ]; then
 fi
 
 if [ -f ${extension_dir}/redis.so ]; then
-    ENABLE_REDIS=${ENABLE_REDIS:-1}
-    if [ ${ENABLE_REDIS} -eq 1 ]; then
-        echo "[redis]" > ${sapi_confdir}/conf.d/20-redis.ini
-        echo "extension=${extension_dir}/redis.so" > ${sapi_confdir}/conf.d/20-redis.ini
+    REDIS_CONF=${REDIS_CONF:-"off"}
+    if [ "${REDIS_CONF}" = "off" ]; then
+        if [ -f "${sapi_confdir}/conf.d/20-redis.ini" ]; then
+            rm -f ${sapi_confdir}/conf.d/20-redis.ini
+        fi
+    else
+        if [ ! -f "${sapi_confdir}/conf.d/20-redis.ini" ]; then
+            echo "[redis]" > ${sapi_confdir}/conf.d/20-redis.ini
+            echo "extension=${extension_dir}/redis.so" > ${sapi_confdir}/conf.d/20-redis.ini
+        fi
+        update_config "${sapi_confdir}/fpm/php.ini" "${REDIS_CONF}"
     fi
 fi
+
 if [ -f ${extension_dir}/memcached.so ]; then 
     ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-1}
     if [ ${ENABLE_MEMCACHED} -eq 1 ]; then
