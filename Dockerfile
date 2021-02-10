@@ -24,7 +24,8 @@ RUN /install/post-install
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y nginx
 
-COPY start /run/php/
+COPY init /run/init/
+COPY start /run/php/start
 
 STOPSIGNAL SIGTERM
-CMD ["/bin/bash", "/run/php/start.sh"]
+CMD ["/bin/bash", "/run/php/start"]
