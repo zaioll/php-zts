@@ -22,5 +22,10 @@ COPY install/requirements/_dev-packages /install/requirements/
 COPY install/post-install /install/
 RUN /install/post-install
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y nginx
+
+COPY init /run/init/
+COPY start /run/php/start
+
 STOPSIGNAL SIGTERM
-CMD ["/bin/bash", "/run/start.sh"]
+CMD ["/bin/bash", "/run/php/start"]
