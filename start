@@ -1,0 +1,346 @@
+#!/bin/bash
+
+set -e
+
+echo "Start PHP"
+
+full_version=$(php-config --version | egrep '[0-9]\.[0-9]\.[0-9]{1,2}' | cut -d'-' -f1)
+major=$(echo ${full_version} | cut -d. -f1)
+minor=$(echo ${full_version} | cut -d. -f2)
+patch=$(echo ${full_version} | cut -d. -f3)
+php_version="${major}.${minor}"
+
+sysconfdir=/etc/php/${php_version}
+extension_dir=$(php-config --extension-dir)
+
+cli_confdir=${sysconfdir}
+cli_ini=php-cli.ini
+
+sapi_confdir=${sysconfdir}
+pool_conf=${sapi_confdir}/fpm/pool.d/www.conf
+
+APP_ENV=${APP_ENV:-"debug"}
+if [ "${APP_ENV}" != "prod" ] && [ "${APP_ENV}" != "debug" ] && [ "${APP_ENV}" != "dev" ];then
+    APP_ENV="debug"
+fi
+
+if [ ! -d ${sapi_confdir} ] || [ ! -d ${cli_confdir} ];then
+    echo "Diretórios de configurações PHP inexistentes! \n"
+    exit 1 
+fi
+if [ ! -f ${sapi_confdir}/fpm/php.ini ] || [ ! -f ${cli_confdir}/${cli_ini} ];then
+    echo "Arquivos de configurações PHP inexistentes! \n"
+    exit 1 
+fi
+
+# Atualiza configuração. Descomenta se estiver comentada
+update_config() {
+    file="${1}"
+    conf_list="${2}"
+    if [ -f "${file}" ] && [ -n "${conf_list}" ]; then
+        confs=($(echo ${conf_list}))
+        for conf in "${confs[@]}"; do
+            param=$(echo ${conf} | sed -E -n -e 's/^([0-9\.a-z\_]+)\=.*/\1/p')
+            valor=$(echo ${conf} | sed -E -n -e 's/^[0-9a-z\.\_]+\=(.+)$/\1/p')
+            sed -i -E -e "s#^\;?\s*${param}\s*\=\s*([^\n]+|$)#${param} = ${valor}#" ${file}
+        done
+    fi
+}
+
+remove_xdebug_ini() {
+    if [ -f ${cli_confdir}/conf.d/20-xdebug.ini ]; then
+        rm -f ${cli_confdir}/conf.d/20-xdebug.ini
+    fi
+    if [ -f ${sapi_confdir}/conf.d/20-xdebug.ini ]; then
+        rm -f ${sapi_confdir}/conf.d/20-xdebug.ini
+    fi
+}
+
+remove_opcache_ini() {
+    if [ -f ${cli_confdir}/conf.d/10-opcache.ini ]; then
+        rm -f ${cli_confdir}/conf.d/10-opcache.ini
+    fi
+    if [ -f ${sapi_confdir}/conf.d/10-opcache.ini ]; then
+        rm -f ${sapi_confdir}/conf.d/10-opcache.ini
+    fi
+}
+
+size_unit="k"
+time_unit="s"
+
+file_descriptors=$(ulimit -n) # worker_connections
+qtd_cpus=$(sed -n '/processor/p' /proc/cpuinfo | wc -l) # worker_processes
+mempage=$(getconf PAGESIZE)
+mempage_size=$((${mempage} / 1024)) # B => k
+
+# PHP.ini
+max_execution_time=$((30*8)) # Facilitar debug
+output_buffering=${mempage} # mempage_size in Bytes
+max_input_vars=4000
+memory_limit=128 # Megabytes
+
+# Libera captura de variáveis de ambiente
+sed -E -i -e 's/^\;clear_env/clear_env/' ${pool_conf}
+
+DEFAULT_PHP_INI=''
+if [ "${APP_ENV}" = "prod" ]; then
+    max_execution_time=10 # impede scripts bosta
+    memory_limit=$((${memory_limit} * 10 / 100)) # 10%. Impede scripts bosta
+
+    DEFAULT_PHP_INI="cgi.fix_pathinfo=0 display_startup_errors=Off memory_limit=${memory_limit}M zend.assertions=-1 report_memleaks=Off display_errors=Off log_errors=Off expose_php=Off max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=On"
+fi
+if [ "${APP_ENV}" = "dev" ]; then
+    DEFAULT_PHP_INI="cgi.fix_pathinfo=0 display_startup_errors=On implicit_flush=On memory_limit=${memory_limit}M display_errors=On log_errors=On expose_php=On max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=Off"
+fi
+
+# Maximum time in seconds a script is allowed to parse input data, like POST and GET.
+# Timing begins at the moment PHP is invoked at the server and ends when execution begins.
+max_input_time=$((${max_execution_time} * 10 / 100)) # 10%
+
+if [ -n "${PHP_INI_CONF}" ];then
+    # Concatena
+    PHP_INI_CONF="${DEFAULT_PHP_INI} ${PHP_INI_CONF}"
+else
+    PHP_INI_CONF=${PHP_INI_CONF:-${DEFAULT_PHP_INI}}
+fi
+
+if [ -n "${PHP_INI_CONF}" ];then
+    update_config "${sapi_confdir}/fpm/php.ini" "${PHP_INI_CONF}"
+    update_config ${cli_confdir}/${cli_ini} "${PHP_INI_CONF}"
+fi
+
+# control opcache lib load
+if [[ ( -f ${extension_dir}/opcache.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "prod" ) ]]; then
+    qtd_php_files=65406
+    if [ -d /var/www/html ];then
+        qtd_php_files=$(find /var/www/html -name "*.php" | wc -l)
+    fi
+    max_accelerated_files=$(( ${qtd_php_files} / 100 + ${qtd_php_files} ))
+    DEFAULT="enable=1 enable_cli=0 memory_consumption=256 interned_strings_buffer=16 validate_timestamps=0 revalidate_freq=0 enable_file_override=1 save_comments=0 error_log='/var/log/php-opcache-error.log' max_accelerated_files=${max_accelerated_files} fast_shutdown=1"
+    OPCACHE_CONF=${OPCACHE_CONF:-${DEFAULT}}
+    if [ "${OPCACHE_CONF}" = "off" ]; then
+        remove_opcache_ini
+    else
+        if [ ! -f "${sapi_confdir}/conf.d/10-opcache.ini" ];then
+            echo "[opcache]" > ${sapi_confdir}/conf.d/10-opcache.ini
+            echo "zend_extension=${extension_dir}/opcache.so" >> ${sapi_confdir}/conf.d/10-opcache.ini
+        fi
+        opcache_confs=($(echo ${OPCACHE_CONF}))
+        for conf in "${opcache_confs[@]}"; do
+            echo "opcache.${conf}" >> ${sapi_confdir}/conf.d/10-opcache.ini
+        done
+    fi
+fi
+
+if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "dev" ) ]]; then
+    hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
+    DEFAULT="mode=develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
+    XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
+    if [ "${XDEBUG_CONFIG}" = "off" ]; then
+        remove_xdebug_ini
+    else
+        if [ ! -f "${sapi_confdir}/conf.d/20-xdebug.ini" ]; then
+            echo "[Xdebug]" > "${sapi_confdir}/conf.d/20-xdebug.ini"
+            echo "zend_extension=${extension_dir}/xdebug.so" >> ${sapi_confdir}/conf.d/20-xdebug.ini
+        fi
+        confs=($(echo ${XDEBUG_CONFIG}))
+        for conf in "${confs[@]}"; do
+            echo "xdebug.${conf}" >> ${sapi_confdir}/conf.d/20-xdebug.ini
+        done
+    fi
+fi
+
+# control parallel lib load
+if [ -f ${extension_dir}/parallel.so ]; then
+    ENABLE_PARALLEL=${ENABLE_PARALLEL:-1}
+    if [ ${ENABLE_PARALLEL} -eq 1 ]; then
+        echo "[parallel]" > ${sapi_confdir}/conf.d/20-parallel.ini
+        echo "extension=${extension_dir}/parallel.so" > ${sapi_confdir}/conf.d/20-parallel.ini
+    fi
+fi
+
+if [ -f ${extension_dir}/redis.so ]; then
+    REDIS_CONF=${REDIS_CONF:-"off"}
+    if [ "${REDIS_CONF}" = "off" ]; then
+        if [ -f "${sapi_confdir}/conf.d/20-redis.ini" ]; then
+            rm -f ${sapi_confdir}/conf.d/20-redis.ini
+        fi
+    else
+        REDIS_CONF="session.probability=0 ${REDIS_CONF}"
+        if [ ! -f "${sapi_confdir}/conf.d/20-redis.ini" ]; then
+            echo "[redis]" > ${sapi_confdir}/conf.d/20-redis.ini
+            echo "extension=${extension_dir}/redis.so" > ${sapi_confdir}/conf.d/20-redis.ini
+        fi
+        update_config "${sapi_confdir}/fpm/php.ini" "${REDIS_CONF}"
+    fi
+fi
+
+if [ -f ${extension_dir}/memcached.so ]; then 
+    ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-0}
+    if [ ${ENABLE_MEMCACHED} -eq 1 ]; then
+        echo "[memcached]" > ${sapi_confdir}/conf.d/20-memcached.ini
+        echo "extension=${extension_dir}/memcached.so" > ${sapi_confdir}/conf.d/20-memcached.ini
+    fi
+fi
+
+if [ -f ${extension_dir}/mongodb.so ]; then
+    ENABLE_MONGODB=${ENABLE_MONGODB:-0}
+    if [ ${ENABLE_MONGODB} -eq 1 ]; then
+        echo "[mongodb]" > ${sapi_confdir}/conf.d/20-mongodb.ini
+        echo "extension=${extension_dir}/mongodb.so" > ${sapi_confdir}/conf.d/20-mongodb.ini
+    fi
+fi
+
+# configure supervisor
+sed -i -E -e "s|command=|command=/usr/sbin/php-fpm --fpm-config /etc/php/${php_version}/fpm/php-fpm.conf --pid /run/php/php-fpm.pid -F|g" /etc/supervisor/conf.d/supervisord.conf
+
+ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
+if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
+    echo "Enable PHP-FPM socket"
+    sed -i -E -e "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
+else
+    echo "Disable PHP-FPM socket"
+    sed -i -E -e "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
+fi
+
+
+WEB_SERVER=${WEB_SERVER:-"on"}
+if [ "${WEB_SERVER}" == "on" ];then
+    #packages="nginx"
+    #if [ "${APP_ENV}" = "dev" ]; then
+        #DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ${packages}
+        #packages="${packages} apache2-utils"
+    #fi
+
+    if [ -f "/etc/nginx/sites-enabled/default" ]; then
+
+        if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
+            # descomenta e configura php socket no nginx
+            sed -E -i -e '/#location \~ \\\.php\$ \{/,/#\}$/{s/#//;s/fastcgi_pass 12/#fastcgi_pass 12/}' /etc/nginx/sites-enabled/default
+            sed -E -i -e "s/[0-9]\.[0-9]+\-fpm\.sock/${major}-fpm.sock/g" /etc/nginx/sites-enabled/default
+        else
+            sed -E -i -e "/#location \~ \\\.php\$ \{/,/#\}$/{s/#//;s/fastcgi_pass un/#fastcgi_pass un/}" /etc/nginx/sites-enabled/default
+        fi
+
+    # Timeouts Globais
+
+        # duração em que a conexão keepalive permanece aberta
+        keepalive_timeout=${max_execution_time}
+
+        # Tempo em que o servidor nginx aguarda o envio de corpo da msg do cliente após uma solicitação.
+        client_body_timeout=${max_execution_time}
+
+        # Tempo em que o servidor nginx aguarda o envio de cabeçalho da msg do cliente após uma solicitação.
+        client_header_timeout=$((${max_execution_time} * 60 / 100)) # 60%
+
+        # Tempo limite para enviar uma resposta ao cliente. Se o cliente não receber a resposta do servidor dentro desse período, o nginx encerrará a conexão.
+        send_timeout=$((${max_execution_time} * 40 / 100 + 3)) # 40% + 3
+
+    # Buffers Globais
+
+        # client_body_buffer_size semelhante, mas lida com o tamanho do cabeçalho do cliente.
+        client_header_buffer_size=$((${mempage_size} * 1))
+
+        # tamanho do buffer do cliente, ou seja, as ações POST, por exemplo envios de formulários enviados ao servidor web Nginx.
+        client_body_buffer_size=$((${mempage_size} * 32))
+
+        # tamanho máximo permitido da solicitação do cliente. Se o valor for excedido, o nginx produzirá um erro 413 ou a entidade de solicitação muito grande.
+        client_max_body_size=$((${client_body_buffer_size} * 2))
+
+        qtd_buffers=8
+        tamanho_buffer=$((${qtd_buffers} * ${client_header_buffer_size}))
+        large_client_header_buffers="${qtd_buffers} ${tamanho_buffer}${size_unit}"  # Número e tamanho máximo de buffers para cabeçalhos grandes de clientes.
+
+    # FastCGI
+
+        fastcgi_read_timeout=$((${max_execution_time} * 10 / 100 + ${max_execution_time})) 
+        fastcgi_send_timeout=$((${max_input_time} - (${max_input_time} * 10 / 100))) 
+
+        fastcgi_buffer_size=${mempage_size}
+        fastcgi_buffers_qtd=128
+        fastcgi_buffers="${fastcgi_buffers_qtd} ${fastcgi_buffer_size}${size_unit}"
+        fastcgi_busy_buffers_size=$((${fastcgi_buffers_qtd} * ${mempage_size} / 2))
+        fastcgi_temp_file_write_size=$((${client_body_buffer_size} * 2))
+        fastcgi_request_buffering=off # somente para mais de um webserver
+
+        # Configura workers
+        sed -E -i -e "s/worker_processes ([0-9]+|auto)/worker_processes ${qtd_cpus}/g" /etc/nginx/nginx.conf
+        #sed -E -i -e '/worker_processes/a\' -e "worker_rlimit_nofile ${file_descriptors};" /etc/nginx/nginx.conf
+
+        # Configura conexões
+        sed -E -i -e "s/worker_connections [0-9]+/worker_connections ${file_descriptors}/g" /etc/nginx/nginx.conf
+        sed -E -i -e '/worker_connections/a\' -e "\tuse epoll\;" /etc/nginx/nginx.conf
+
+        # Permite multi acesso [global]
+        #sed -E -i -e 's/# multi_accept/multi_accept/g' /etc/nginx/nginx.conf
+
+        # Desativa log acesso [global]
+        sed -E -i -e 's/access_log [0-9\.\_a-z\/]+\;/access_log off;/g' /etc/nginx/nginx.conf
+
+        # Configura timout keepalive [global]
+        #sed -E -i -e "s/keepalive_timeout [0-9]+/keepalive_timeout ${keepalive_timeout}/g" /etc/nginx/nginx.conf
+
+        # Configura buffers [global]
+        #sed -E -i -e '/include \/etc\/nginx\/sites\-enabled\/\*\;/a\' -e "\n\tclient_body_buffer_size ${client_body_buffer_size}${size_unit};\n\tclient_header_buffer_size ${client_header_buffer_size}${size_unit};\n\tclient_max_body_size ${client_max_body_size}${size_unit};\n\tlarge_client_header_buffers ${large_client_header_buffers};" /etc/nginx/nginx.conf
+
+        # Configura timeouts [global]
+        #sed -E -i -e '/large_client_header_buffers/a\' -e "\tclient_header_timeout ${client_header_timeout};\n\tclient_body_timeout ${client_body_timeout};\n\tsend_timeout ${send_timeout};\n\treset_timedout_connection on;" /etc/nginx/nginx.conf
+
+
+        # Configura timeouts fastcgi 
+        #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_read_timeout ${fastcgi_read_timeout}\;\n\t\tfastcgi_send_timeout ${fastcgi_send_timeout}\;" /etc/nginx/sites-enabled/default
+
+        # Se guarda parte da resposta do fastcgi no buffer antes de enviar ao cliente
+        #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_buffering off\;" /etc/nginx/sites-enabled/default
+
+        # Configura buffers fastcgi 
+        #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_request_buffering ${fastcgi_request_buffering};\n\t\tfastcgi_buffer_size ${fastcgi_buffer_size}${size_unit};\n\t\tfastcgi_buffers ${fastcgi_buffers};\n\t\tfastcgi_busy_buffers_size ${fastcgi_busy_buffers_size}${size_unit};\n\t\tfastcgi_temp_file_write_size ${fastcgi_temp_file_write_size}${size_unit};" /etc/nginx/sites-enabled/default
+
+        # Define server name
+        SERVER_NAME=${SERVER_NAME:-'localhost'}
+        if [ -n "${SERVER_NAME}" ]; then
+            sed -E -i -e "s#^\s*server_name [^\s]+\;#\tserver_name ${SERVER_NAME}\;#" /etc/nginx/sites-enabled/default
+        fi
+
+        # Define charset site
+        sed -E -i -e '/^\s*server \{/a\' -e "\tcharset utf-8\;" /etc/nginx/sites-enabled/default
+
+        # Define index
+        sed -E -i -e '/^\s*location \/ \{/,/\}/{/try_files/s/\=404/\/index\.php\$args/};/^\s*location \/ \{/a\' -e "\t\tindex index\.html index\.php\;" /etc/nginx/sites-enabled/default
+
+        # Redireciona scripts não encontrados
+        sed -E -i -e '/^\s*location \/ \{/,/\}/{/try_files/s/\=404/\/index\.php\$args/}' /etc/nginx/sites-enabled/default
+
+        # Impede acesso arquivos ocultos
+        sed -E -i -e '/#location \~ \/\\.ht \{/,/#\}$/s/#//;s/\.ht \{/\. \{/;/deny all;/a\' -e "\t\taccess_log off;\n\t\tlog_not_found off;" /etc/nginx/sites-enabled/default
+
+        echo -e "\n[program:nginx]" >> /etc/supervisor/conf.d/supervisord.conf
+        echo -e "command=/usr/sbin/nginx -g \"daemon off;\"" >> /etc/supervisor/conf.d/supervisord.conf
+        confs=("stdout_logfile=/dev/stdout" "stdout_logfile_maxbytes=0" "stderr_logfile=/dev/stderr" "stderr_logfile_maxbytes=0" "autorestart=true")
+        for conf in "${confs[@]}"; do
+            echo -e "${conf}" >> /etc/supervisor/conf.d/supervisord.conf
+        done
+    fi
+fi
+
+# Força finalização processamento, caso max_execution_time falhe
+sed -E -i -e '/^listen.group \=/a\' -e "request_terminate_timeout = $((${max_execution_time} * 10 / 100 + ${max_execution_time}))" ${pool_conf}
+
+RAW_POOL=${RAW_POOL:-''}
+if [ -n "${RAW_POOL}" ]; then
+    update_config "${pool_conf}" "${RAW_POOL}"
+fi
+
+if [ "${APP_ENV}" = "prod" ];then
+    # Define PM com static
+    #sed -E -i -e 's/pm = dynamic/pm = static/;s/pm.max_children = [0-9]+/pm.max_children = 25/;/pm.start_servers/d;/pm.min_spare_servers/d;/pm.max_spare_servers/d' ${pool_conf}
+    #sed -E -i -e '/pm.max_children/a\' -e 'pm.max_requests = 200' ${pool_conf}
+
+    # Remove comentários
+    sed -i -E '/(^;|^$)/d' ${sapi_confdir}/fpm/php.ini
+    sed -i -E '/(^;|^$)/d' ${cli_confdir}/${cli_ini}
+    sed -i -E '/(^;|^$)/d' ${pool_conf}
+fi
+
+# start supervisor and send to background
+/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
