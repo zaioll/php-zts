@@ -347,8 +347,8 @@ fi
 
 if [ "${APP_ENV}" = "prod" ];then
     # Define PM com static
-    #sed -E -i -e 's/pm = dynamic/pm = static/;s/pm.max_children = [0-9]+/pm.max_children = 25/;/pm.start_servers/d;/pm.min_spare_servers/d;/pm.max_spare_servers/d' ${pool_conf}
-    #sed -E -i -e '/pm.max_children/a\' -e 'pm.max_requests = 200' ${pool_conf}
+    sed -E -i -e 's/pm = dynamic/pm = static/;s/pm.max_children = [0-9]+/pm.max_children = 10/;/pm.start_servers/d;/pm.min_spare_servers/d;/pm.max_spare_servers/d' ${pool_conf}
+    sed -E -i -e '/pm.max_children/a\' -e 'pm.max_requests = 500' ${pool_conf}
 
     # Remove comentários
     sed -i -E '/(^;|^$)/d' ${sapi_confdir}/fpm/php.ini
