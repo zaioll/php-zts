@@ -1,38 +1,28 @@
+#!/bin/bash
+
+install_path=${install_base}/local/src
+if [ ! -d ${install_path}/php ]; then
+   echo "PHP source files doesn't located!"
+   exit 1
+fi
+
 major=$(echo ${php_version} | cut -d. -f1)
 minor=$(echo ${php_version} | cut -d. -f2)
 full_version=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,2}$" | tail -n 1 | cut -d- -f2)
 patch=$(echo ${full_version} | cut -d. -f3)
 
-install_path=${install_base}/local/src
+full_version="${php_version}.${patch}"
 
 prefix=${install_base}
 sysconfdir="/etc"
 
-cd ${install_path}
-
-echo "Download PHP ${full_version}..."
-if [ ! -d "${install_path}/php" ];then
-   # Download PHP
-   curl \
-      --progress-bar \
-      --max-time 60 \
-      --retry-max-time 60 \
-      --retry 5 \
-      --location https://github.com/php/php-src/archive/php-${full_version}.tar.gz | tar xzf -
-   
-   mv php* php
-   if [ ! -d php ]; then
-      echo "Falha ao baixar PHP ${full_version}!"
-      exit 1;
-   fi
-fi
-
-cd php
 echo "Try to compile and install PHP ${full_version}..."
 
 export PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2"
 export PHP_CPPFLAGS="${PHP_CFLAGS}"
 export PHP_LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie"
+
+cd ${install_path}/php
 
 ./buildconf --force
 ./configure \
