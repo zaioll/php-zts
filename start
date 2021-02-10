@@ -134,7 +134,7 @@ fi
 
 if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "dev" ) ]]; then
     hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
-    DEFAULT="mode=develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
+    DEFAULT="remote_enable=yes remote_autostart=yes idekey=VSCODE remote_host=${hospedeiro}"
     XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
     if [ "${XDEBUG_CONFIG}" = "off" ]; then
         remove_xdebug_ini
