@@ -8,4 +8,6 @@ echo "install"
 figlet "php-decimal"
 
 pecl install decimal
-echo "extension=$(php-config --extension-dir)/decimal.so" >> /etc/php/${php_version}/conf.d/20-decimal.ini \
+if [ -f $(php-config --extension-dir)/decimal.so ];then
+  echo "extension=$(php-config --extension-dir)/decimal.so" >> /etc/php/${php_version}/conf.d/20-decimal.ini
+fi
