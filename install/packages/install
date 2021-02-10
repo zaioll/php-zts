@@ -1,0 +1,11 @@
+#!/bin/bash
+export install_base=/usr
+
+/install/packages/php.sh
+/install/packages/php-xdebug.sh
+/install/packages/php-redis.sh
+/install/packages/php-parallel.sh
+/install/packages/php-swoole.sh
+/install/packages/php-decimal.sh
+/install/packages/php-memcached.sh
+/install/packages/php-mongodb.sh
