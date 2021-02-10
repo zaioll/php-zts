@@ -1,28 +1,23 @@
+#!/bin/bash
+
+install_path=${install_base}/local/src
+if [ ! -d ${install_path}/php ]; then
+   echo "PHP source files doesn't located!"
+   exit 1
+fi
 
 major=$(echo ${php_version} | cut -d. -f1)
 minor=$(echo ${php_version} | cut -d. -f2)
 patch=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,}$" | cut -d. -f3 | sort -g | tail -n 1)
 
 full_version="${php_version}.${patch}"
-install_path=${install_base}/local/src
 
 prefix=${install_base}
 sysconfdir="/etc"
 
-cd ${install_path}
-
-echo "Download PHP ${full_version}..."
-# Download PHP
-curl \
-   --progress-bar \
-   --max-time 60 \
-   --retry-max-time 60 \
-   --retry 5 \
-   --location https://github.com/php/php-src/archive/php-${full_version}.tar.gz | tar xzf -
+cd ${install_path}/php
 
 echo "Try to compile and install PHP ${full_version}..."
-mv php* php
-cd php
 
 ./buildconf --force
 ./configure \

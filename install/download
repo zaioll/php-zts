@@ -1,0 +1,98 @@
+#!/bin/bash
+
+export install_base=/usr
+mkdir /info
+
+major=$(echo ${php_version} | cut -d. -f1)
+minor=$(echo ${php_version} | cut -d. -f2)
+patch=$(git ls-remote --tags https://github.com/php/php-src | grep -Eo "php-${major}\.${minor}\.[0-9]{1,}$" | cut -d. -f3 | sort -g | tail -n 1)
+
+full_version="${php_version}.${patch}"
+install_path=${install_base}/local/src
+
+prefix=${install_base}
+sysconfdir="/etc"
+
+cd ${install_path}
+
+
+retry_max_time=$((60 * 3))
+echo "Download PHP ${full_version}..."
+# Download PHP
+curl \
+   --progress-bar \
+   --max-time ${retry_max_time} \
+   --retry-max-time ${retry_max_time} \
+   --retry 10 \
+   --location https://github.com/php/php-src/archive/php-${full_version}.tar.gz | tar xzf -
+mv php* php
+if [ ! -d "${PWD}/php" ]; then
+    echo "Falha ao baixar arquivo PHP"
+    exit 1
+fi
+
+version_xdebug=$(git ls-remote --tags https://github.com/xdebug/xdebug.git | egrep -o '2\.9\.[0-9]*$' | tail -n 1 | cut -d_ -f2-4)
+curl \
+  --progress-bar \
+  --max-time ${retry_max_time} \
+  --retry-max-time ${retry_max_time} \
+  --retry 10 \
+  --location https://github.com/xdebug/xdebug/archive/${version_xdebug}.tar.gz | tar xzf -
+mv xdebug* xdebug
+if [ ! -d "${PWD}/xdebug" ]; then
+    echo "Falha ao baixar xdebug"
+    exit 1
+fi
+echo "Xdebug download success!"
+
+version_redis=$(git ls-remote --tags https://github.com/phpredis/phpredis.git | egrep -o '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | tail -n 1)
+curl \
+  --progress-bar \
+  --max-time ${retry_max_time} \
+  --retry-max-time ${retry_max_time} \
+  --retry 10 \
+  --location https://github.com/phpredis/phpredis/archive/${version_redis}.tar.gz | tar xzf -
+mv phpredis* redis
+if [ ! -d "${PWD}/redis" ]; then
+    echo "Falha ao baixar redis"
+    exit 1
+fi
+echo "Redis download success!"
+
+version_parallel=$(git ls-remote --tags https://github.com/krakjoe/parallel.git | egrep -o 'v?[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | tail -n 1)
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location https://github.com/krakjoe/parallel/archive/${version_parallel}.tar.gz | tar xzf -
+mv parallel* parallel
+if [ -d "${PWD}/parallel" ]; then
+    echo "Parallel download success!"
+fi
+
+version_mongodb=$(git ls-remote --tags https://github.com/mongodb/mongo-php-driver.git | egrep -o 'v?[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | tail -n 1)
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location https://github.com/mongodb/mongo-php-driver/releases/download/${version_mongodb}/mongodb-${version_mongodb}.tgz  | tar xzf -
+mv mongodb* mongodb
+if [ -d "${PWD}/mongodb" ]; then
+    echo "Mongodb download success!"
+fi
+
+branch_memcached="$(git ls-remote --tags https://github.com/php-memcached-dev/php-memcached.git | egrep -o 'v?[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,}$' | tail -n 1)"
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location "https://github.com/php-memcached-dev/php-memcached/archive/${branch_memcached}.tar.gz" | tar xzf -
+mv php-memcached* memcached
+if [ -d "${PWD}/memcached" ]; then
+    echo "Memcached download success!"
+fi
+
+exit 0
