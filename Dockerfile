@@ -2,7 +2,7 @@ FROM zaioll/debian:stretch
 
 LABEL maintener 'Láyro Chrystofer <zaioll@protonmail.com>'
 
-ENV php_version=7.2
+ENV php_version=7.3
 ENV usuario developer
 ENV HOME "/home/${usuario}"
 
