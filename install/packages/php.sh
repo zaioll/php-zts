@@ -16,9 +16,13 @@ full_version="${php_version}.${patch}"
 prefix=${install_base}
 sysconfdir="/etc"
 
-cd ${install_path}/php
-
 echo "Try to compile and install PHP ${full_version}..."
+
+export PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+export PHP_CPPFLAGS="${PHP_CFLAGS}"
+export PHP_LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie"
+
+cd ${install_path}/php
 
 ./buildconf --force
 ./configure \
@@ -26,6 +30,8 @@ echo "Try to compile and install PHP ${full_version}..."
    --sysconfdir=${sysconfdir} \
    --includedir=${prefix}/share \
    --with-layout=GNU \
+   --with-gmp \
+   --enable-option-checking=fatal \
    --with-bz2 \
    --with-zlib-dir \
    --with-ffi \
