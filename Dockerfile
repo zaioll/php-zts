@@ -24,6 +24,7 @@ RUN /install/post-install
 
 COPY init /run/init
 
+EXPOSE 80 8000
 
 STOPSIGNAL SIGTERM
 CMD ["/bin/bash", "/run/init/start"]
