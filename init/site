@@ -1,0 +1,23 @@
+#!/bin/bash
+
+site_conf=${1:-"/etc/nginx/sites-enabled/default"}
+major=${2:-"7"}
+SERVER_NAME=${SERVER_NAME:-""}
+
+# descomenta e configura php socket no nginx
+sed -E -i -e '/^\s*server \{/i\' -e "\nupstream php-fpm {\n\tserver unix:/run/php/php${major}-fpm.sock\;\n}" ${site_conf}
+sed -E -i -e '/#location \~ \\\.php\$ \{/,/#\}$/{s/#//;s/fastcgi_pass 12/#fastcgi_pass 12/}' ${site_conf}
+sed -E -i -e 's/^\s*fastcgi_pass .+\;$/\t\tfastcgi_pass php-fpm\;/' ${site_conf}
+sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_param SCRIPT_FILENAME /var/www/html/index.php\;\n\t\tfastcgi_param SERVER_NAME \$host\;" ${site_conf}
+
+# Define server name
+if [ -n "${SERVER_NAME}" ]; then
+    sed -E -i -e "s#^\s*server_name [^\s]+\;#\tserver_name ${SERVER_NAME}\;#" ${site_conf}
+fi
+
+# Define index
+sed -E -i -e 's/^\s*index\s/\tindex index.php /' ${site_conf}
+sed -E -i -e '/^\s*location \/ \{/,/\}/{/try_files/s/\$uri\/ \=404/\/index\.php\$args/}' ${site_conf}
+
+# Impede acesso arquivos ocultos
+sed -E -i -e '/#location \~ \/\\.ht \{/,/#\}$/s/#//;s/\.ht \{/\. \{/;/deny all;/a\' -e "\t\taccess_log off;\n\t\tlog_not_found off;" ${site_conf}

@@ -18,11 +18,10 @@ if [ ! -d /var/log/nginx ];then
     mkdir -p /var/log/nginx
     chown -R www-data:www-data /var/log/nginx
 fi
-    site_conf="/etc/nginx/sites-enabled/default"
+site_conf="/etc/nginx/sites-enabled/default"
 if [ -f ${site_conf} ]; then
 
 # Timeouts Globais
-
     # duração em que a conexão keepalive permanece aberta
     keepalive_timeout=${max_execution_time}
 
@@ -62,6 +61,9 @@ if [ -f ${site_conf} ]; then
     fastcgi_temp_file_write_size=$((${client_body_buffer_size} * 2))
     fastcgi_request_buffering=off # somente para mais de um webserver
 
+    # descomenta e configura php socket no nginx
+    /run/init/site ${site_conf} ${major}
+
     # Configura workers
     sed -E -i -e "s/worker_processes ([0-9]+|auto)/worker_processes ${qtd_cpus}/g" /etc/nginx/nginx.conf
     sed -E -i -e '/worker_processes/a\' -e "worker_rlimit_nofile ${file_descriptors};" /etc/nginx/nginx.conf
@@ -83,36 +85,16 @@ if [ -f ${site_conf} ]; then
     fi
 
     # Configura timout keepalive [global]
-    #sed -E -i -e "s/keepalive_timeout [0-9]+/keepalive_timeout ${keepalive_timeout}/g" /etc/nginx/nginx.conf
+    sed -E -i -e "s/keepalive_timeout [0-9]+/keepalive_timeout ${keepalive_timeout}/g" /etc/nginx/nginx.conf
 
     # Configura buffers [global]
-    #sed -E -i -e '/include \/etc\/nginx\/sites\-enabled\/\*\;/a\' -e "\n\tclient_body_buffer_size ${client_body_buffer_size}${size_unit};\n\tclient_header_buffer_size ${client_header_buffer_size}${size_unit};\n\tclient_max_body_size ${client_max_body_size}${size_unit};\n\tlarge_client_header_buffers ${large_client_header_buffers};" /etc/nginx/nginx.conf
+    sed -E -i -e '/include \/etc\/nginx\/sites\-enabled\/\*\;/a\' -e "\n\tclient_body_buffer_size ${client_body_buffer_size}${size_unit};\n\tclient_header_buffer_size ${client_header_buffer_size}${size_unit};\n\tclient_max_body_size ${client_max_body_size}${size_unit};\n\tlarge_client_header_buffers ${large_client_header_buffers};" /etc/nginx/nginx.conf
 
     # Configura timeouts [global]
-    #sed -E -i -e '/large_client_header_buffers/a\' -e "\tclient_header_timeout ${client_header_timeout};\n\tclient_body_timeout ${client_body_timeout};\n\tsend_timeout ${send_timeout};\n\treset_timedout_connection on;" /etc/nginx/nginx.conf
-
-
-    # Configura timeouts fastcgi 
-    #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_read_timeout ${fastcgi_read_timeout}\;\n\t\tfastcgi_send_timeout ${fastcgi_send_timeout}\;" ${site_conf}
-
-    # Se guarda parte da resposta do fastcgi no buffer antes de enviar ao cliente
-    #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_buffering off\;" ${site_conf}
-
-    # Configura buffers fastcgi 
-    #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_request_buffering ${fastcgi_request_buffering};\n\t\tfastcgi_buffer_size ${fastcgi_buffer_size}${size_unit};\n\t\tfastcgi_buffers ${fastcgi_buffers};\n\t\tfastcgi_busy_buffers_size ${fastcgi_busy_buffers_size}${size_unit};\n\t\tfastcgi_temp_file_write_size ${fastcgi_temp_file_write_size}${size_unit};" ${site_conf}
-
-    # Define server name
-    if [ -n "${SERVER_NAME}" ]; then
-        sed -E -i -e "s#^\s*server_name [^\s]+\;#\tserver_name ${SERVER_NAME}\;#" ${site_conf}
-    fi
+    sed -E -i -e '/large_client_header_buffers/a\' -e "\tclient_header_timeout ${client_header_timeout};\n\tclient_body_timeout ${client_body_timeout};\n\tsend_timeout ${send_timeout};\n\treset_timedout_connection on;" /etc/nginx/nginx.conf
 
     # Define charset site
     sed -E -i -e '/^\s*server \{/a\' -e "\tcharset utf-8\;" ${site_conf}
 
-    # Define index
-    sed -E -i -e 's/^\s*index\s/\tindex index.php /' ${site_conf}
-    sed -E -i -e '/^\s*location \/ \{/,/\}/{/try_files/s/\$uri\/ \=404/\/index\.php\$args/}' ${site_conf}
-
-    # Impede acesso arquivos ocultos
-    sed -E -i -e '/#location \~ \/\\.ht \{/,/#\}$/s/#//;s/\.ht \{/\. \{/;/deny all;/a\' -e "\t\taccess_log off;\n\t\tlog_not_found off;" ${site_conf}
+    /run/init/fastcgi_timeouts ${site_conf} ${size_unit} ${fastcgi_read_timeout} ${fastcgi_send_timeout} ${fastcgi_buffers} ${fastcgi_buffer_size} ${fastcgi_busy_buffers_size} ${fastcgi_temp_file_write_size}
 fi
