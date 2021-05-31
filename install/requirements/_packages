@@ -1,12 +1,3 @@
-ca-certificates
-apt-transport-https
-locales locales-all
-wget 
-curl
-gnupg2
-unzip
-figlet
-git
 libltdl7
 libc6
 libbz2-1.0
@@ -44,4 +35,6 @@ libssl1.1
 libffi6
 libzip4
 libsnappy1v5
+libmpdec2
+iproute2
 libsodium18

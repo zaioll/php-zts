@@ -13,22 +13,13 @@ SERVER_NAME=${10}
 
 size_unit="k"
 
-#packages="nginx"
-#if [ "${APP_ENV}" = "dev" ]; then
-    #DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ${packages}
-    #packages="${packages} apache2-utils"
-#fi
-
-if [ -f "/etc/nginx/sites-enabled/default" ]; then
+# cria dir logs
+if [ ! -d /var/log/nginx ];then
+    mkdir -p /var/log/nginx
+    chown -R www-data:www-data /var/log/nginx
+fi
     site_conf="/etc/nginx/sites-enabled/default"
-
-    # descomenta e configura php socket no nginx
-    #sed -E -i -e '/^\s*server \{/i\' -e "\nupstream php-fpm {\n\tserver unix:/run/php/php${major}-fpm.sock\;\n\n\tkeepalive 10\;\n}" ${site_conf}
-    sed -E -i -e '/^\s*server \{/i\' -e "\nupstream php-fpm {\n\tserver unix:/run/php/php${major}-fpm.sock\;\n}" ${site_conf}
-    sed -E -i -e '/#location \~ \\\.php\$ \{/,/#\}$/{s/#//;s/fastcgi_pass 12/#fastcgi_pass 12/}' ${site_conf}
-    sed -E -i -e 's/^\s*fastcgi_pass .+\;$/\t\tfastcgi_pass php-fpm\;/' ${site_conf}
-    #sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_keep_conn on\;\n\t\tfastcgi_param SCRIPT_FILENAME /var/www/html/index.php\;\n\t\tfastcgi_param SERVER_NAME \$host\;" ${site_conf}
-    sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_param SCRIPT_FILENAME /var/www/html/index.php\;\n\t\tfastcgi_param SERVER_NAME \$host\;" ${site_conf}
+if [ -f ${site_conf} ]; then
 
 # Timeouts Globais
 

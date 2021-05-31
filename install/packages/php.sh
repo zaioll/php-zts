@@ -31,52 +31,25 @@ cd ${install_path}/php
    --includedir=${prefix}/share \
    --with-layout=GNU \
    --with-gmp \
-   --enable-option-checking=fatal \
    --with-bz2 \
    --with-zlib-dir \
    --with-ffi \
    --with-zlib \
-   --disable-cgi \
-   --enable-soap \
-   --enable-intl \
    --with-openssl \
    --with-readline \
    --with-curl \
-   --enable-ftp \
-   --with-pdo-pgsql=pgsql \
-   --enable-mysqlnd \
-   --with-mysqli=mysqlnd \
-   --with-pdo-mysql=mysqlnd \
-   --with-pdo-firebird \
-   --enable-sockets \
-   --enable-pcntl \
    --with-pspell \
    --with-enchant \
    --with-gettext \
-   --enable-exif \
+   --with-pdo-pgsql=pgsql \
+   --with-mysqli=mysqlnd \
+   --with-pdo-mysql=mysqlnd \
+   --with-pdo-firebird \
    --with-xsl \
-   --enable-bcmath \
-   --enable-mbstring \
-   --enable-calendar \
-   --enable-simplexml \
-   --enable-json \
-   --enable-session \
-   --enable-xml \
-   --enable-opcache \
    --with-config-file-path=${sysconfdir}/php/${php_version} \
    --with-config-file-scan-dir=${sysconfdir}/php/${php_version}/conf.d \
-   --enable-cli \
-   --enable-maintainer-zts \
    --with-tsrm-pthreads \
-   --enable-debug \
-   --enable-fpm \
-   --enable-gd \
    --with-pgsql \
-   --disable-rpath \
-   --enable-sysvsem \
-   --enable-sysvshm \
-   --enable-inline-optimization \
-   --enable-mbregex \
    --with-mhash \
    --with-zip \
    --with-jpeg \
@@ -87,7 +60,37 @@ cd ${install_path}/php
    --with-pear \
    --with-mysql-sock=/var/run/mysqld/mysqld.sock \
    --with-fpm-user=www-data \
-   --with-fpm-group=www-data 
+   --with-fpm-group=www-data \
+   --disable-rpath \
+   --disable-cgi \
+   --enable-pdo \
+   --enable-tokenizer \
+   --enable-soap \
+   --enable-intl \
+   --enable-option-checking=fatal \
+   --enable-ftp \
+   --enable-mysqlnd \
+   --enable-sockets \
+   --enable-pcntl \
+   --enable-exif \
+   --enable-bcmath \
+   --enable-mbstring \
+   --enable-calendar \
+   --enable-simplexml \
+   --enable-json \
+   --enable-session \
+   --enable-xml \
+   --enable-opcache \
+   --enable-cli \
+   --enable-maintainer-zts \
+   --enable-debug \
+   --enable-fpm \
+   --enable-gd \
+   --enable-sysvsem \
+   --enable-sysvshm \
+   --enable-inline-optimization \
+   --enable-mbregex
+
 
 # compile and install
 make -j$(nproc) > >(tee /info/compile-${PWD##*/}.log) 2> >(tee /info/compile-${PWD##*/}.err >&2) 
