@@ -13,15 +13,14 @@ SERVER_NAME=${10}
 
 size_unit="k"
 
-#packages="nginx"
-#if [ "${APP_ENV}" = "dev" ]; then
-    #DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ${packages}
-    #packages="${packages} apache2-utils"
-#fi
+# cria dir logs
+if [ ! -d /var/log/nginx ];then
+    mkdir -p /var/log/nginx
+    chown -R www-data:www-data /var/log/nginx
+fi
 
-if [ -f "/etc/nginx/sites-enabled/default" ]; then
-    site_conf="/etc/nginx/sites-enabled/default"
-
+site_conf="/etc/nginx/sites-enabled/default"
+if [ -f "${site_conf}" ]; then
     # descomenta e configura php socket no nginx
     #sed -E -i -e '/^\s*server \{/i\' -e "\nupstream php-fpm {\n\tserver unix:/run/php/php${major}-fpm.sock\;\n\n\tkeepalive 10\;\n}" ${site_conf}
     sed -E -i -e '/^\s*server \{/i\' -e "\nupstream php-fpm {\n\tserver unix:/run/php/php${major}-fpm.sock\;\n}" ${site_conf}
