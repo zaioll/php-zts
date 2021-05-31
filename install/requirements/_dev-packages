@@ -54,3 +54,4 @@ libcrypto++-dev
 libssl-dev
 libmpdec-dev
 libsnappy-dev
+libsodium-dev
