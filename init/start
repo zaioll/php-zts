@@ -229,5 +229,12 @@ if [ "${APP_ENV}" = "prod" ];then
     sed -i -E '/(^;|^$)/d' ${pool_conf}
 fi
 
+# Configure supervisor
+sed -E -i -e '/pidfile/a user=root \;' /etc/supervisor/supervisord.conf
+
+if [ ! -d /var/log/supervisor ];then
+    mkdir -p /var/log/supervisor
+fi
+
 # start supervisor and send to background
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
