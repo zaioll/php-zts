@@ -1,4 +1,5 @@
 FROM zaioll/debian:stretch
+#FROM --platform=amd64 zaioll/debian:stretch-slim as build
 
 LABEL maintener 'Láyro Chrystofer <zaioll@protonmail.com>'
 
@@ -24,8 +25,7 @@ RUN /install/post-install
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y nginx
 
-COPY init /run/init/
-COPY start /run/php/start
+COPY init /run/init
 
 STOPSIGNAL SIGTERM
-CMD ["/bin/bash", "/run/php/start"]
+CMD ["/bin/bash", "/run/init/start"]
