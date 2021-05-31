@@ -58,3 +58,4 @@ libsodium-dev
 zlib1g-dev
 libwebp-dev
 libxpm-dev
+git
