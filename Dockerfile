@@ -1,5 +1,4 @@
-FROM zaioll/debian:stretch
-#FROM --platform=amd64 zaioll/debian:stretch-slim as build
+FROM --platform=amd64 zaioll/debian:stretch-slim as build
 
 LABEL maintener 'Láyro Chrystofer <zaioll@protonmail.com>'
 
