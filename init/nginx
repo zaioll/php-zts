@@ -49,6 +49,12 @@ if [ -f ${site_conf} ]; then
     tamanho_buffer=$((${qtd_buffers} * ${client_header_buffer_size}))
     large_client_header_buffers="${qtd_buffers} ${tamanho_buffer}${size_unit}"  # Número e tamanho máximo de buffers para cabeçalhos grandes de clientes.
 
+    if [ ${APP_ENV} = "env" ]; then
+        client_header_buffer_size=$((${client_header_buffer_size} * 16))
+        client_body_buffer_size=$((${client_body_buffer_size} * 2))
+        client_max_body_size=$((${client_max_body_size} * 2))
+    fi
+
 # FastCGI
 
     fastcgi_read_timeout=$((${max_execution_time} * 10 / 100 + ${max_execution_time})) 
