@@ -17,7 +17,6 @@ cd ${install_path}
 
 
 retry_max_time=$((60 * 3))
-echo "Download PHP ${full_version}..."
 # Download PHP
 curl \
    --progress-bar \
@@ -30,6 +29,7 @@ if [ ! -d "${PWD}/php" ]; then
     echo "Falha ao baixar arquivo PHP"
     exit 1
 fi
+echo "PHP source download success!"
 
 version_xdebug=$(git ls-remote --tags https://github.com/xdebug/xdebug.git | egrep -o '[0-9]+\.[0-9]+\.[0-9]*$' | tail -n 1 | cut -d_ -f2-4)
 curl \
