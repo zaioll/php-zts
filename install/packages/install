@@ -10,3 +10,4 @@ export install_base=/usr
 /install/packages/php-memcached.sh
 /install/packages/php-mongodb.sh
 /install/packages/php-sodium.sh
+/install/packages/php-amqp.sh
