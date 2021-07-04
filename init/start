@@ -252,5 +252,7 @@ if [ ! -d /var/log/supervisor ];then
     mkdir -p /var/log/supervisor
 fi
 
+/run/init/hook-start
+
 # start supervisor and send to background
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
