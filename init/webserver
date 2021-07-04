@@ -132,7 +132,6 @@ if [ -f /sbin/sysctl ]; then
 fi
 
 if [ -d /etc/nginx ]; then
-    echo "Call nginx"
     /run/init/nginx ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME}
 
     echo -e "\n[program:nginx]" >> /etc/supervisor/conf.d/supervisord.conf
