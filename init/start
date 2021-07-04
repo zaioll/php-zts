@@ -20,6 +20,19 @@ sapi_confdir=${sysconfdir}
 pool_conf=${sapi_confdir}/fpm/pool.d/www.conf
 
 APP_ENV=${APP_ENV:-"debug"}
+if [[ "${APP_ENV}" =~ ^dev* ]]; then
+    APP_ENV="dev"
+fi
+if [[ "${APP_ENV}" =~ ^prod* ]]; then
+    APP_ENV="prod"
+fi
+
+xdebug_default_port=9000
+
+ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
+
+echo "Environment: ${APP_ENV}"
+
 if [ "${APP_ENV}" != "prod" ] && [ "${APP_ENV}" != "debug" ] && [ "${APP_ENV}" != "dev" ];then
     APP_ENV="debug"
 fi
@@ -140,11 +153,15 @@ fi
 
 if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "dev" ) ]]; then
     hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
-    DEFAULT="mode=develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
+    if [ ${ENABLE_FPM_SOCKET} -ne 1 ];then
+        xdebug_default_port=9003
+    fi
+    DEFAULT="mode=develop,debug start_with_request=yes client_port=${xdebug_default_port} idekey=VSCODE client_host=${hospedeiro}"
     XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
     if [ "${XDEBUG_CONFIG}" = "off" ]; then
         remove_xdebug_ini
     else
+        echo "XDebug port: ${xdebug_default_port}"
         if [ ! -f "${sapi_confdir}/conf.d/20-xdebug.ini" ]; then
             echo "[Xdebug]" > "${sapi_confdir}/conf.d/20-xdebug.ini"
             echo "zend_extension=${extension_dir}/xdebug.so" >> ${sapi_confdir}/conf.d/20-xdebug.ini
@@ -208,7 +225,6 @@ fi
 # configure supervisor
 sed -i -E -e "s|command=|command=/usr/sbin/php-fpm --fpm-config /etc/php/${php_version}/fpm/php-fpm.conf --pid /run/php/php-fpm.pid -F|g" /etc/supervisor/conf.d/supervisord.conf
 
-ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
 if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
     echo "Enable PHP-FPM socket"
     sed -i -E -e "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
