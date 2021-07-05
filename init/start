@@ -27,7 +27,7 @@ fi
 
 xdebug_default_port=9000
 
-ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-1}
+ENABLE_FPM_SOCKET=${ENABLE_FPM_SOCKET:-"on"}
 
 if [ "${APP_ENV}" != "prod" ] && [ "${APP_ENV}" != "debug" ] && [ "${APP_ENV}" != "dev" ];then
     APP_ENV="debug"
@@ -170,15 +170,40 @@ fi
 
 # control parallel lib load
 if [ -f ${extension_dir}/parallel.so ]; then
-    ENABLE_PARALLEL=${ENABLE_PARALLEL:-1}
-    if [ ${ENABLE_PARALLEL} -eq 1 ]; then
+    ENABLE_PARALLEL=${ENABLE_PARALLEL:-"on"}
+    if [ ${ENABLE_PARALLEL} = "on" ]; then
         echo "[parallel]" > ${sapi_confdir}/conf.d/20-parallel.ini
         echo "extension=${extension_dir}/parallel.so" > ${sapi_confdir}/conf.d/20-parallel.ini
     fi
 fi
 
+if [ -f ${extension_dir}/swoole.so ]; then
+    ENABLE_SWOOLE=${ENABLE_SWOOLE:-"off"}
+    if [ ${ENABLE_SWOOLE} = "off" ]; then
+        rm -fr ${sapi_confdir}/conf.d/20-swoole.ini
+    fi
+fi
+if [ -f ${extension_dir}/amqp.so ]; then
+    ENABLE_AMQP=${ENABLE_AMQP:-"off"}
+    if [ ${ENABLE_AMQP} = "off" ]; then
+        rm -fr ${sapi_confdir}/conf.d/20-amqp.ini
+    fi
+fi
+if [ -f ${extension_dir}/sodium.so ]; then
+    ENABLE_SODIUM=${ENABLE_SODIUM:-"on"}
+    if [ ${ENABLE_SODIUM} = "on" ]; then
+        rm -fr ${sapi_confdir}/conf.d/20-sodium.ini
+    fi
+fi
+if [ -f ${extension_dir}/decimal.so ]; then
+    ENABLE_DECIMAL=${ENABLE_DECIMAL:-"on"}
+    if [ ${ENABLE_DECIMAL} = "on" ]; then
+        rm -fr ${sapi_confdir}/conf.d/20-decimal.ini
+    fi
+fi
+
 if [ -f ${extension_dir}/redis.so ]; then
-    REDIS_CONF=${REDIS_CONF:-"on"}
+    REDIS_CONF=${REDIS_CONF:-"off"}
     if [ "${REDIS_CONF}" = "off" ]; then
         if [ -f "${sapi_confdir}/conf.d/20-redis.ini" ]; then
             rm -f ${sapi_confdir}/conf.d/20-redis.ini
@@ -202,16 +227,16 @@ if [ -f ${extension_dir}/swoole.so ]; then
 fi
 
 if [ -f ${extension_dir}/memcached.so ]; then 
-    ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-0}
-    if [ ${ENABLE_MEMCACHED} -eq 1 ]; then
+    ENABLE_MEMCACHED=${ENABLE_MEMCACHED:-"off"}
+    if [ ${ENABLE_MEMCACHED} = "on" ]; then
         echo "[memcached]" > ${sapi_confdir}/conf.d/20-memcached.ini
         echo "extension=${extension_dir}/memcached.so" > ${sapi_confdir}/conf.d/20-memcached.ini
     fi
 fi
 
 if [ -f ${extension_dir}/mongodb.so ]; then
-    ENABLE_MONGODB=${ENABLE_MONGODB:-0}
-    if [ ${ENABLE_MONGODB} -eq 1 ]; then
+    ENABLE_MONGODB=${ENABLE_MONGODB:-"off"}
+    if [ ${ENABLE_MONGODB} = "on" ]; then
         echo "[mongodb]" > ${sapi_confdir}/conf.d/20-mongodb.ini
         echo "extension=${extension_dir}/mongodb.so" > ${sapi_confdir}/conf.d/20-mongodb.ini
     fi
@@ -220,7 +245,7 @@ fi
 # configure supervisor
 sed -i -E -e "s|command=|command=/usr/sbin/php-fpm --fpm-config /etc/php/${php_version}/fpm/php-fpm.conf --pid /run/php/php-fpm.pid -F|g" /etc/supervisor/conf.d/supervisord.conf
 
-if [ ${ENABLE_FPM_SOCKET} -eq 1 ];then
+if [ ${ENABLE_FPM_SOCKET} = "on" ];then
     sed -i -E -e "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
 else
     sed -i -E -e "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
