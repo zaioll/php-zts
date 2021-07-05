@@ -13,6 +13,10 @@ rm -rf /tmp/*
 
 dpkg-query --show --showformat='${Package;-30} ${Version;-30} ${Status}\n' | grep installed | grep ^lib | awk '{printf "%-30s %s\n",$1,$2}'>/info/installed-libs
 
+echo "| Library               | Version                           |" > /info/installed-libs.md
+echo "| :---:                 |  :---:                            |" >> /info/installed-libs.md
+dpkg-query --show --showformat='${Package;-30} ${Version;-30} ${Status}\n' | grep installed | grep ^lib | awk '{printf "|%-30s| %s|\n",$1,$2}' >> /info/installed-libs.md
+
 ext_dir=$(php-config --extension-dir)
 all_ext_ini=/etc/php/all-ext.ini
 :>${all_ext_ini}
@@ -27,6 +31,9 @@ done
 
 php -c ${all_ext_ini} -r 'foreach (get_loaded_extensions() as $e) { echo "$e\t" . phpversion($e) . "\n"; }' | awk '{printf "%-30s %s\n",$1,$2}'>/info/installed-php-extensions
 
+echo "| Extension             | Version                           |" > /info/installed-php-extensions.md
+echo "| :---:                 |  :---:                            |" >> /info/installed-php-extensions.md
+php -c ${all_ext_ini} -r 'foreach (get_loaded_extensions() as $e) { echo "$e\t" . phpversion($e) . "\n"; }' | awk '{printf "|%-30s| %s|\n",$1,$2}' >> /info/installed-php-extensions.md
 
 rm -rf /usr/local/src/*
 rm -rf /install
