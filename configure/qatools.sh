@@ -2,6 +2,7 @@
 
 # install latest composer
 echo -e "try download composer...\n"
+fail="no"
 curl \
     --progress-bar \
     --max-time 60 \
@@ -15,17 +16,18 @@ if [ -e composer.phar ];then
         echo "Composer installed at '/usr/local/bin/composer'."
     else
         echo "Composer install failed!"
+        fail="yes" 
     fi
 
-    echo "Setting COMPOSER_ALLOW_SUPERUSER env var to '1'."
-    su ${usuario} -c "export COMPOSER_ALLOW_SUPERUSER=1"
-    echo "Setting COMPOSER_ALLOW_XDEBUG env var to '0'."
-    su ${usuario} -c "export COMPOSER_ALLOW_XDEBUG=0 "
     chown ${usuario}:${usuario} -R ${HOME}
-    echo -e "Installing 'phpbench'...\n"
-    su ${usuario} -c "/usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require phpbench/phpbench @dev -v"
+    if [ "${fail}" = "no" ];then
+        echo -e "Installing 'phpbench'...\n"
+        su ${usuario} -c "/usr/bin/php -d memory_limit=-1 /usr/local/bin/composer global require phpbench/phpbench @dev -v"
+        su ${usuario} -c "/usr/local/bin/composer clearcache"
+    fi
 else
     echo "Composer download failed..."
+    fail="yes"
 fi
 
 echo "try to install phive..."
@@ -40,4 +42,7 @@ if [ -e phive.phar ]; then
     echo "Phive installed at '/usr/local/bin/phive'."
 else
     echo "Phive download failed..."
+    fail="yes"
 fi
+
+exit 0
