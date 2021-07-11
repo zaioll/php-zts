@@ -146,7 +146,7 @@ if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_E
     if [ ${ENABLE_FPM_SOCKET} -ne 1 ];then
         xdebug_default_port=9003
     fi
-    DEFAULT="mode=develop,debug start_with_request=yes client_port=${xdebug_default_port} idekey=VSCODE client_host=${hospedeiro}"
+    DEFAULT="mode=develop,debug,coverage start_with_request=yes client_port=${xdebug_default_port} idekey=VSCODE client_host=${hospedeiro}"
     XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
     if [ "${XDEBUG_CONFIG}" = "off" ]; then
         remove_xdebug_ini
