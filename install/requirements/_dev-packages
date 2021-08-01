@@ -56,3 +56,4 @@ libmpdec-dev
 libsnappy-dev
 git
 libsodium-dev
+libmagickwand-dev
