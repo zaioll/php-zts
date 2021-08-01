@@ -2,6 +2,11 @@
 
 set -e
 
+if [ -f /run/init/is-configured ];then
+    /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    exit 0
+fi
+
 full_version=$(php-config --version | egrep '[0-9]\.[0-9]\.[0-9]{1,2}' | cut -d'-' -f1)
 major=$(echo ${full_version} | cut -d. -f1)
 minor=$(echo ${full_version} | cut -d. -f2)
@@ -339,6 +344,8 @@ echo -e "Configurations:
             * Like php.ini conf, RAW_POOL must be used to configure main php-fpm pool
 
 "
+# block next configuration process
+touch /run/init/is-configured 
 
 # start supervisor and send to background
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
