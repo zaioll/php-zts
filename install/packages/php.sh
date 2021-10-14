@@ -46,7 +46,7 @@ cd ${install_path}/php
    --enable-cli \
    --with-pgsql \
    --with-mhash \
-   --without-pear \
+   --with-pear \
    --with-gmp \
    --with-bz2 \
    --with-webp \
