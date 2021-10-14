@@ -83,6 +83,17 @@ if [ -d "${PWD}/mongodb" ]; then
     echo "Mongodb download success!"
 fi
 
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location https://github.com/php-amqp/php-amqp/archive/master.tar.gz | tar xzf -
+mv php-amqp* amqp
+if [ -d "${PWD}/amqp" ]; then
+    echo "AMQP download success!"
+fi
+
 branch_memcached="$(git ls-remote --tags https://github.com/php-memcached-dev/php-memcached.git | egrep -o 'v?[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,}$' | tail -n 1)"
 curl \
   --progress-bar \
