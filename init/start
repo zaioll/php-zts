@@ -189,12 +189,7 @@ if [ -f ${extension_dir}/amqp.so ]; then
         rm -fr ${sapi_confdir}/conf.d/20-amqp.ini
     fi
 fi
-if [ -f ${extension_dir}/sodium.so ]; then
-    ENABLE_SODIUM=${ENABLE_SODIUM:-"on"}
-    if [ ${ENABLE_SODIUM} = "off" ]; then
-        rm -fr ${sapi_confdir}/conf.d/20-sodium.ini
-    fi
-fi
+
 if [ -f ${extension_dir}/decimal.so ]; then
     ENABLE_DECIMAL=${ENABLE_DECIMAL:-"on"}
     if [ ${ENABLE_DECIMAL} = "off" ]; then
