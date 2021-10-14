@@ -214,8 +214,8 @@ if [ -f ${extension_dir}/redis.so ]; then
 fi
 
 if [ -f ${extension_dir}/swoole.so ]; then
-    ENABLE_SWOOLE=${ENABLE_SWOOLE:-0}
-    if [ ${ENABLE_SWOOLE} -eq 1 ]; then
+    ENABLE_SWOOLE=${ENABLE_SWOOLE:-"off"}
+    if [ ${ENABLE_SWOOLE} = "on" ]; then
         echo "[swoole]" > ${config_dir}/20-swoole.ini
         echo "extension=${extension_dir}/swoole.so" >> ${config_dir}/20-swoole.ini
     fi
