@@ -2,7 +2,7 @@ FROM --platform=amd64 zaioll/debian:stretch-slim as build
 
 LABEL maintener 'Láyro Chrystofer <zaioll@protonmail.com>'
 
-ENV php_version=8.0
+ENV php_version=8.1
 ENV usuario developer
 ENV HOME "/home/${usuario}"
 
