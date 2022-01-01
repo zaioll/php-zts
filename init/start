@@ -101,7 +101,7 @@ if [ "${APP_ENV}" = "prod" ]; then
     max_execution_time=10 # impede scripts bosta
     memory_limit=$((${memory_limit} * 10 / 100)) # 10%. Impede scripts bosta
 
-    DEFAULT_PHP_INI="cgi.fix_pathinfo=0 display_startup_errors=Off memory_limit=${memory_limit}M zend.assertions=-1 report_memleaks=Off display_errors=Off log_errors=Off expose_php=Off max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=On"
+    DEFAULT_PHP_INI="error_log=/dev/stderr cgi.fix_pathinfo=0 display_startup_errors=Off memory_limit=${memory_limit}M zend.assertions=-1 report_memleaks=Off display_errors=Off log_errors=Off expose_php=Off max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=On"
 fi
 if [ "${APP_ENV}" = "dev" ]; then
     DEFAULT_PHP_INI="cgi.fix_pathinfo=0 display_startup_errors=On implicit_flush=On memory_limit=${memory_limit}M display_errors=On log_errors=On expose_php=On max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=Off"
@@ -272,6 +272,11 @@ sed -E -i -e '/pidfile/a user=root \;' /etc/supervisor/supervisord.conf
 
 if [ ! -d /var/log/supervisor ];then
     mkdir -p /var/log/supervisor
+fi
+
+if [ ! -f /var/log/php.log ];then
+    echo "" > /var/log/php.log
+    chown www-data:www-data /var/log/php.log
 fi
 
 /run/init/hook-start
