@@ -42,5 +42,6 @@ libfcgi0ldbl
 libonig4
 libssl1.1
 libzip4
+libsodium18
 libsnappy1v5
 librabbitmq4

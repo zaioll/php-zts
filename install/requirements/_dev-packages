@@ -52,4 +52,5 @@ libonig-dev
 libcrypto++-dev
 libssl-dev
 libmpdec-dev
+libsodium-dev
 libsnappy-dev

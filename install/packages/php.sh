@@ -82,6 +82,7 @@ echo "Try to compile and install PHP ${full_version}..."
    --with-imap \
    --with-imap-ssl \
    --with-kerberos \
+   --with-sodium \
    --with-xmlrpc
  
 # compile and install
