@@ -230,4 +230,4 @@ if [ "${APP_ENV}" = "prod" ];then
 fi
 
 # start supervisor and send to background
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
