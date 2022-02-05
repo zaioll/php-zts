@@ -4,6 +4,7 @@ locales locales-all
 wget 
 curl
 gnupg2
+iproute2
 unzip
 figlet
 git
