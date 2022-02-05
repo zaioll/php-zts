@@ -28,3 +28,4 @@ done
 php -c ${all_ext_ini} -r 'foreach (get_loaded_extensions() as $e) { echo "$e\t" . phpversion($e) . "\n"; }' | awk '{printf "%-30s %s\n",$1,$2}'>/info/installed-php-extensions
 
 rm -rf ${install_base}/local/src/*
+rm -fr /install
