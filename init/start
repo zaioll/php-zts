@@ -78,15 +78,21 @@ size_unit="k"
 time_unit="s"
 
 file_descriptors=$(ulimit -n) # worker_connections
-qtd_cpus=$(sed -n '/processor/p' /proc/cpuinfo | wc -l) # worker_processes
+# https://stackoverflow.com/questions/47545960/how-to-check-the-number-of-cores-used-by-docker-container
+qtd_cpus=$(( $(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us) / 100000 )) # divide a qtd entre PHP e Nginx
+if [ ${qtd_cpus} -lt 1 ];then
+    qtd_cpus=1
+fi
+ram_total=$(( ($(cat /sys/fs/cgroup/memory/memory.limit_in_bytes) / 1024) / 1024 ))
+
 mempage=$(getconf PAGESIZE)
 mempage_size=$((${mempage} / 1024)) # B => k
 
 # PHP.ini
-max_execution_time=$((30*8)) # Facilitar debug
+max_execution_time=$((60*8)) # Facilitar debug
 output_buffering=${mempage} # mempage_size in Bytes
 max_input_vars=4000
-memory_limit=128 # Megabytes
+memory_limit=${ram_total} # Megabytes
 
 # Libera captura de variáveis de ambiente
 sed -E -i -e 's/^\;clear_env/clear_env/' ${pool_conf}
@@ -105,6 +111,10 @@ fi
 # Maximum time in seconds a script is allowed to parse input data, like POST and GET.
 # Timing begins at the moment PHP is invoked at the server and ends when execution begins.
 max_input_time=$((${max_execution_time} * 10 / 100)) # 10%
+
+if [[ "${APP_ENV}" =~ ^prod* ]] || [ "${APP_ENV}" = "test" ]; then
+    max_execution_time=10
+fi 
 
 if [ -n "${PHP_INI_CONF}" ];then
     # Concatena
@@ -261,9 +271,53 @@ if [ -n "${RAW_POOL}" ]; then
 fi
 
 if [ "${APP_ENV}" = "prod" ];then
-    # Define PM com static
-    sed -E -i -e 's/pm = dynamic/pm = static/;s/pm.max_children = [0-9]+/pm.max_children = 10/;/pm.start_servers/d;/pm.min_spare_servers/d;/pm.max_spare_servers/d' ${pool_conf}
-    sed -E -i -e '/pm.max_children/a\' -e 'pm.max_requests = 500' ${pool_conf}
+    fpm_proc_mem=$(( (40240 + ${mempage_size}) / 1024 )) # qtd média memória alocada por um processo PHP + buffer em Mb
+    nginx_proc_mem=$(( (11616 * ${qtd_cpus}) / 1024 )) # qtd média mem alocada pelos processos nginx  em Mb
+
+    # supervisord + bash + start-container
+    so_mem=$(( (19796 + 3708 + 3568) / 1024 ))
+    opcache_mem=0
+    if [ -f ${sapi_confdir}/conf.d/10-opcache.ini ];then
+        opcache_mem=$(grep 'memory_consumption' ${sapi_confdir}/conf.d/10-opcache.ini | cut -d'=' -f2) 
+    fi
+
+    echo -e "\nMemória total disponível         : ${ram_total}Mb"
+    echo "Tamanho memória base processos Nginx  : ${nginx_proc_mem}Mb"
+    echo "Tamanho memória base PHP-FPM          : ${fpm_proc_mem}Mb"
+    echo "Tamanho memória base SO               : ${so_mem}Mb"
+
+    max_children=$(( (${ram_total} - ${so_mem} - ${nginx_proc_mem}) / ${fpm_proc_mem} ))
+    if [ ${max_children} -lt 1 ];then
+        max_children=1
+    fi
+    start_servers=$(( ${qtd_cpus} * 4 ))
+    min_spare_servers=$(( ${qtd_cpus} * 2 ))
+    max_spare_servers=${start_servers}
+
+    sed -E -i -e "/pm.start_servers/d;/pm.min_spare_servers/d;/pm.max_spare_servers/d;/pm.max_requests/d;/pm.process_idle_timeout/d;/pm.max_children/d;" ${pool_conf}
+
+    PHP_FPM_TYPE=${PHP_FPM_TYPE:-"static"}
+    if [ "${PHP_FPM_TYPE}" = "dynamic" ]; then
+        sed -E -i -e "s/pm = .+/pm = dynamic/" ${pool_conf}
+        sed -E -i -e '/pm \= dynamic/a\' -e "pm\.process_idle_timeout\= ${max_execution_time}" ${pool_conf}
+        sed -E -i -e '/pm \= dynamic/a\' -e "pm\.max_spare_servers \= ${max_spare_servers}" ${pool_conf}
+        sed -E -i -e '/pm \= dynamic/a\' -e "pm\.min_spare_servers \= ${min_spare_servers}" ${pool_conf}
+        sed -E -i -e '/pm \= dynamic/a\' -e "pm\.max_children \= ${max_children}" ${pool_conf}
+        sed -E -i -e '/pm \= dynamic/a\' -e "pm\.max_requests \= 1024" ${pool_conf}
+        sed -E -i -e '/pm \= dynamic/a\' -e "pm\.start_servers \= ${start_servers}" ${pool_conf}
+        # Envia erros para STDERR
+        sed -E -i -e '/pm \= dynamic/a\' -e "catch_workers_output = yes" ${pool_conf}
+    fi
+    if [ "${PHP_FPM_TYPE}" = "static" ]; then
+        sed -E -i -e "s/pm = .+/pm = static/" ${pool_conf}
+        sed -E -i -e '/pm \= static/a\' -e "pm\.max_children \= ${max_children}" ${pool_conf}
+        sed -E -i -e '/pm \= static/a\' -e 'pm.max_requests = 1024' ${pool_conf}
+        # Envia erros para STDERR
+        sed -E -i -e '/pm \= static/a\' -e "catch_workers_output = yes" ${pool_conf}
+    fi
+
+    # Envia erros para STDERR
+    sed -E -i -e 's/\;?error_log[[:space:]]*\=[[:space:]]*.+/error_log = \/dev\/stderr/' "${sapi_confdir}/fpm/php-fpm.conf"
 
     # Remove comentários
     sed -i -E '/(^;|^$)/d' ${sapi_confdir}/fpm/php.ini
@@ -278,7 +332,8 @@ if [ ! -d /var/log/supervisor ];then
     mkdir -p /var/log/supervisor
 fi
 
-/run/init/hook-start
+# Run pre-init hook
+su developer -c "/bin/bash /var/run/init-hook"
 
 echo -e "Configurations:
     Infrastructure values:
