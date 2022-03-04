@@ -134,11 +134,11 @@ fi
 if [ -d /etc/nginx ]; then
     /run/init/nginx ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME}
 
-    echo -e "\n[program:nginx]" >> /etc/supervisor/conf.d/supervisord.conf
-    echo -e "command=/usr/sbin/nginx -g \"daemon off;\"" >> /etc/supervisor/conf.d/supervisord.conf
+    echo -e "\n[program:nginx]" >> /etc/supervisor/conf.d/20nginx.conf
+    echo -e "command=/usr/sbin/nginx -g \"daemon off;\"" >> /etc/supervisor/conf.d/20nginx.conf
     confs=("stdout_logfile=/dev/stdout" "stdout_logfile_maxbytes=0" "stderr_logfile=/dev/stderr" "stderr_logfile_maxbytes=0" "autorestart=true")
     for conf in "${confs[@]}"; do
-        echo -e "${conf}" >> /etc/supervisor/conf.d/supervisord.conf
+        echo -e "${conf}" >> /etc/supervisor/conf.d/20nginx.conf
     done
 fi
 #if [ -d /etc/apache2 ]; then
