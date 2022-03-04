@@ -11,3 +11,4 @@ install/packages/php-decimal.sh
 /install/packages/php-mongodb.sh
 /install/packages/php-amqp.sh
 /install/packages/php-imagick.sh
+/install/packages/php-uuid.sh
