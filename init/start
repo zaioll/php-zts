@@ -238,7 +238,7 @@ if [ -f ${extension_dir}/mongodb.so ]; then
 fi
 
 # configure supervisor
-sed -i -E -e "s|command=|command=/usr/sbin/php-fpm --fpm-config /etc/php/${php_version}/fpm/php-fpm.conf --pid /run/php/php-fpm.pid -F|g" /etc/supervisor/conf.d/supervisord.conf
+echo -e "[program:php-fpm]\ncommand=/usr/sbin/php-fpm --fpm-config /etc/php/${php_version}/fpm/php-fpm.conf -F\nstdout_logfile=/dev/stdout\nstdout_logfile_maxbytes=0\nstderr_logfile=/dev/stderr\nstderr_logfile_maxbytes=0\nautorestart=true\nstartretries=3" > /etc/supervisor/conf.d/10php-fpm.conf
 
 if [ ${ENABLE_FPM_SOCKET} = "on" ];then
     sed -i -E -e "s|listen = 127\.0\.0\.1\:9000|listen = /run/php/php${major}-fpm.sock|g" ${pool_conf}
@@ -350,4 +350,4 @@ echo -e "Configurations:
 "
 
 # start supervisor and send to background
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
