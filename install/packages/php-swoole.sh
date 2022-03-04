@@ -23,7 +23,9 @@ phpize && \
 --enable-openssl \
 --with-openssl-dir="/usr/lib/x86_64-linux-gnu" \
 --enable-sockets \
+--enable-swoole-curl \
 --enable-http2 \
+--with-postgres \
 --enable-mysqlnd 
 
 make -j$(nproc) > >(tee /info/compile-${PWD##*/}.log) 2> >(tee /info/compile-${PWD##*/}.err >&2) 
