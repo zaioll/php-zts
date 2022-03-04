@@ -106,4 +106,17 @@ if [ -d "${PWD}/memcached" ]; then
     echo "Memcached download success!"
 fi
 
+swoole_version="$(git ls-remote --tags https://github.com/swoole/swoole-src.git | egrep -o 'v?[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,}$' | tail -n 1)"
+curl \
+  --progress-bar \
+  --max-time 60 \
+  --retry-max-time 60 \
+  --retry 5 \
+  --location https://github.com/swoole/swoole-src/archive/${swoole_version}.tar.gz | tar xzf -
+
+mv swoole* swoole
+if [ -d swoole ];then
+  echo "Swoole Download success!"
+fi
+
 exit 0

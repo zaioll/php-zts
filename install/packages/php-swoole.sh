@@ -7,27 +7,12 @@ if [ -z $(type -P php) ];then
   exit 1;
 fi
 
-swoole_version="$(git ls-remote --tags https://github.com/swoole/swoole-src.git | egrep -o 'v?[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,}$' | tail -n 1)"
-
-cd ${install_base}/local/src
-
-echo "Download swoole..."
-
-curl \
-  --progress-bar \
-  --max-time 60 \
-  --retry-max-time 60 \
-  --retry 5 \
-  --location https://github.com/swoole/swoole-src/archive/${swoole_version}.tar.gz | tar xzf -
-
-mv swoole* swoole
-if [ ! -d swoole ];then
-  echo "Falha ao baixar Swoole!"
-  exit 1;
+if [ ! -d ${install_base}/local/src/swoole ]; then
+  echo "Swoole source files doesn't located!"
+  exit 1
 fi
 
-cd swoole 
-
+cd ${install_base}/local/src/swoole
 #compile e install
 
 export LDFLAGS="-L/usr/local/opt/openssl/lib"

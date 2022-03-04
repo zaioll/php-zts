@@ -216,8 +216,8 @@ fi
 if [ -f ${extension_dir}/swoole.so ]; then
     ENABLE_SWOOLE=${ENABLE_SWOOLE:-"off"}
     if [ ${ENABLE_SWOOLE} = "on" ]; then
-        echo "[swoole]" > ${config_dir}/20-swoole.ini
-        echo "extension=${extension_dir}/swoole.so" >> ${config_dir}/20-swoole.ini
+        echo "[swoole]" > ${sapi_confdir}/conf.d/20-swoole.ini
+        echo "extension=${extension_dir}/swoole.so" >> ${sapi_confdir}/conf.d/20-swoole.ini
     fi
 fi
 
