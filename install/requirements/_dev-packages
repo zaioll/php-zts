@@ -6,6 +6,7 @@ bison
 libtool
 re2c
 file
+libargon2-dev
 autoconf
 pkg-config
 libbison-dev
@@ -58,4 +59,5 @@ libsodium-dev
 zlib1g-dev
 libwebp-dev
 libxpm-dev
+libmagickwand-dev
 git
