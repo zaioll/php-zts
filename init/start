@@ -149,7 +149,7 @@ fi
 
 if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "dev" ) ]]; then
     hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
-    if [ ${ENABLE_FPM_SOCKET} -ne 1 ];then
+    if [ "${ENABLE_FPM_SOCKET}" = "on" ];then
         xdebug_default_port=9003
     fi
     DEFAULT="mode=develop,debug start_with_request=yes client_port=${xdebug_default_port} idekey=VSCODE client_host=${hospedeiro}"
