@@ -342,3 +342,72 @@ fi
 
 # block next configuration process
 touch /run/init/is-configured 
+
+echo -e "Configurations:
+    Infrastructure values:
+
+        file_descriptors=${file_descriptors} # worker_connections
+        qtd_cpus=${qtd_cpus} # worker_processes
+        mempage=${mempage} B
+        mempage_size=${mempage_size} # KB 
+
+        # PHP.ini
+        max_execution_time=${max_execution_time} # seconds
+        output_buffering=${mempage} # B
+        max_input_vars=${max_input_vars}
+        memory_limit=${memory_limit} # Mb
+
+    Environment variables:
+
+        APP_ENV             = ( dev* | prod* | debug )
+
+            Current: '${APP_ENV}'
+        
+        WEB_SERVER          = ( on | off )
+
+            * Enable nginx webserver
+
+            Current: '${WEB_SERVER}' 
+
+        ENABLE_FPM_SOCKET   = ( on | off ) 
+
+            * Enable PHP connections through PHP-FPM socket file
+
+            Current: '${ENABLE_FPM_SOCKET}'
+
+        DEFAULT_PHP_INI     = ( dev | prod | personal )
+
+            * PHP configurations in /etc/php/${major}.${minor}/php.ini
+
+            dev:
+                cgi.fix_pathinfo=0 display_startup_errors=On implicit_flush=On memory_limit=${memory_limit}M display_errors=On log_errors=On expose_php=On max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=Off
+            prod:
+                cgi.fix_pathinfo=0 display_startup_errors=Off memory_limit=${memory_limit}M zend.assertions=-1 report_memleaks=Off display_errors=Off log_errors=Off expose_php=Off max_execution_time=${max_execution_time} date.time_zone=America/Manaus session.cookie_secure=On
+            personal: 
+                Your personal PHP configurations
+
+            Current: '${DEFAULT_PHP_INI}'
+
+        OPCACHE_CONF = ( \$config | off )
+    
+            * Configure opcache or disable it
+            * When APP_ENV='dev', OPCACHE_CONF=off by default
+
+            \$config=\"enable=1 enable_cli=0 memory_consumption=256 interned_strings_buffer=16 validate_timestamps=0 revalidate_freq=0 enable_file_override=1 save_comments=0 error_log='/var/log/php-opcache-error.log' max_accelerated_files=${max_accelerated_files} fast_shutdown=1\"
+
+            Current: '${OPCACHE_CONF}'
+
+        XDEBUG_CONFIG = ( \$config | off )
+
+            * Configure xdebug or disable it
+            * When APP_ENV=prod, XDEBUG_CONFIG=off
+
+            \$config=\"mode=develop,debug start_with_request=yes client_port=${xdebug_default_port} idekey=VSCODE client_host=${hospedeiro}\"
+    
+            Current: '${XDEBUG_CONFIG}'
+
+        RAW_POOL     = ( \$config | '' )
+
+            * Like php.ini conf, RAW_POOL must be used to configure main php-fpm pool
+
+"
