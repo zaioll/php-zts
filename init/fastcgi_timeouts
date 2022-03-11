@@ -1,0 +1,19 @@
+#!/bin/bash
+
+site_conf=${1:-"/etc/nginx/sites-enabled/default"}
+size_unit=${2}
+fastcgi_read_timeout=${3}
+fastcgi_send_timeout=${4}
+fastcgi_buffers=${5}
+fastcgi_buffer_size=${6}
+fastcgi_busy_buffers_size=${7}
+fastcgi_temp_file_write_size=${8}
+
+# Configura timeouts fastcgi 
+sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_read_timeout ${fastcgi_read_timeout}\;\n\t\tfastcgi_send_timeout ${fastcgi_send_timeout}\;" ${site_conf}
+
+# Se guarda parte da resposta do fastcgi no buffer antes de enviar ao cliente
+sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_buffering off\;" ${site_conf}
+
+# Configura buffers fastcgi 
+sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\n\t\tfastcgi_request_buffering off;\n\t\tfastcgi_buffer_size ${fastcgi_buffer_size};\n\t\tfastcgi_buffers ${fastcgi_buffers} ${fastcgi_buffer_size};\n\t\tfastcgi_busy_buffers_size ${fastcgi_busy_buffers_size}${size_unit};\n\t\tfastcgi_temp_file_write_size ${fastcgi_temp_file_write_size}${size_unit};" ${site_conf}
