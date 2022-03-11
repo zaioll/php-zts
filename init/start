@@ -4,5 +4,10 @@ set -e
 
 . /run/init/configure
 
+# Run init-hook
+if [ -f /run/init/init-hook ];then
+    /run/init/init-hook
+fi
+
 # start supervisor and send to background
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
