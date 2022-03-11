@@ -335,9 +335,9 @@ if [ ! -d /var/log/supervisor ];then
     mkdir -p /var/log/supervisor
 fi
 
-# Run init-hook
-if [ -f /var/run/init-hook ];then
-    /var/run/init-hook
+if [ ! -f /var/log/php.log ];then
+    echo "" > /var/log/php.log
+    chown www-data:www-data /var/log/php.log
 fi
 
 # block next configuration process
