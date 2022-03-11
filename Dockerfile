@@ -6,25 +6,17 @@ ENV php_version=7.1
 ENV usuario developer
 ENV HOME "/home/${usuario}"
 
-COPY install/requirements /install/requirements
-RUN /install/requirements/pre-install
+COPY install /install
+COPY configure /configure
+ 
+RUN /install/requirements/pre-install \
+    && /install/download \
+    && /install/packages/install \
+    && /configure/_run.sh \
+    && DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y nginx \
+    && /install/post-install
 
-COPY install/download /install/
-RUN /install/download
-
-COPY install/packages /install/packages
-RUN /install/packages/install
-
-COPY configure /configure/
-RUN /configure/_run.sh
-
-COPY install/requirements/_dev-packages /install/requirements/
-COPY install/post-install /install/
-RUN /install/post-install
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y nginx
-
-COPY init /run/init/
+COPY init /run/init
 COPY start /run/start
 
 STOPSIGNAL SIGTERM

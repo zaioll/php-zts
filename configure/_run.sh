@@ -24,5 +24,5 @@ mkdir /run/php
 mv /configure/supervisord.conf /etc/supervisor/conf.d
 
 # limpa
-rm -fr /configure
-rm -fr /install
+#rm -fr /configure
+#rm -fr /install

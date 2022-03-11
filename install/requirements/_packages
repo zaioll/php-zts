@@ -42,4 +42,6 @@ libfcgi0ldbl
 libonig4
 libssl1.1
 libzip4
+iproute2
+libmpdec2
 libsnappy1v5
