@@ -22,6 +22,8 @@ cli_ini=php-cli.ini
 sapi_confdir=${sysconfdir}
 pool_conf=${sapi_confdir}/fpm/pool.d/www.conf
 
+default_public_dir=${default_public_dir:-"/var/www/html"}
+
 APP_ENV=${APP_ENV:-"debug"}
 if [[ "${APP_ENV}" =~ ^dev* ]]; then
     APP_ENV="dev"
@@ -261,10 +263,10 @@ else
     sed -i -E -e "s|listen = /run/php/php${major}-fpm.sock|listen = 127\.0\.0\.1\:9000|g" ${pool_conf}
 fi
 
-
+SERVER_NAME=${SERVER_NAME:-"localhost"}
 WEB_SERVER=${WEB_SERVER:-"on"}
 if [ "${WEB_SERVER}" = "on" ] && [ -f /run/init/webserver ]; then
-    /run/init/webserver ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME}
+    /run/init/webserver ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME} ${default_public_dir}
 fi
 
 # Força finalização processamento, caso max_execution_time falhe
