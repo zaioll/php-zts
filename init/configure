@@ -299,7 +299,7 @@ if [ "${ENABLE_PHP_FPM}" = "on" ];then
         fi
 
         # Envia erros para STDERR
-        sed -E -i -e 's/\;?error_log[[:space:]]*\=[[:space:]]*.+/error_log = \/dev\/stderr/' "${sapi_confdir}/php-fpm.conf"
+        sed -E -i -e 's/\;?error_log[[:space:]]*\=[[:space:]]*.+/error_log = \/dev\/stderr/' "${sapi_confdir}/fpm/php-fpm.conf"
 
         # Remove comentários
         sed -i -E -e '/(^;|^$)/d' ${pool_conf}
