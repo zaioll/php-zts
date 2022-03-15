@@ -110,7 +110,7 @@ if [ -f "${site_conf}" ]; then
 
     # Define server name
     if [ -n "${SERVER_NAME}" ]; then
-        sed -E -i -e "s#^\s*server_name [^\s]+\;#\tserver_name ${SERVER_NAME}\;#" ${site_conf}
+        sed -E -i -e "s#^[[:space:]]*server_name [^\s]+\;#\tserver_name ${SERVER_NAME}\;#" ${site_conf}
     fi
 
     # Define charset site
