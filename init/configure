@@ -14,6 +14,7 @@ major=$(echo ${full_version} | cut -d. -f1)
 minor=$(echo ${full_version} | cut -d. -f2)
 patch=$(echo ${full_version} | cut -d. -f3)
 php_version="${major}.${minor}"
+default_public_dir="/var/www/html"
 
 sysconfdir=/etc/php/${php_version}
 extension_dir=$(php-config --extension-dir)
@@ -310,7 +311,7 @@ fi
 
 if [ "${WEB_SERVER}" = "on" ] && [ -f /run/init/webserver ]; then
     echo "Call webserver"
-    /run/init/webserver ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME}
+    /run/init/webserver ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME} ${default_public_dir}
 fi
 
 # Força finalização processamento, caso max_execution_time falhe

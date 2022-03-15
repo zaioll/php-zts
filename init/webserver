@@ -10,6 +10,7 @@ qtd_cpus=${7} # $(sed -n '/processor/p' /proc/cpuinfo | wc -l)) # worker_process
 file_descriptors=${8}
 major=${9} # Major php version
 SERVER_NAME=${10:-"localhost"}
+default_public_dir=${11:-"/var/www/html"}
 
 #ContentSecurityPolicyHeader="default-src 'none'; img-src 'self; script-src 'self'; style-src 'self'; 'font-src 'self'; \
 #                        base-uri 'self'; form-action 'self'; connect-src 'self'; frame-ancestors 'none"
@@ -133,7 +134,7 @@ fi
 
 if [ -d /etc/nginx ]; then
     echo "Call nginx"
-    /run/init/nginx ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME}
+    /run/init/nginx ${APP_ENV} ${max_execution_time} ${max_input_time} ${output_buffering} ${mempage} ${mempage_size} ${qtd_cpus} ${file_descriptors} ${major} ${SERVER_NAME} ${default_public_dir}
 
     echo -e "\n[program:nginx]" >> /etc/supervisor/conf.d/supervisord.conf
     echo -e "command=/usr/sbin/nginx -g \"daemon off;\"" >> /etc/supervisor/conf.d/supervisord.conf

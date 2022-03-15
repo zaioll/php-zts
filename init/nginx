@@ -10,6 +10,7 @@ qtd_cpus=${7}
 file_descriptors=${8}
 major=${9}
 SERVER_NAME=${10}
+default_public_dir=${11}
 
 size_unit="k"
 
@@ -68,7 +69,7 @@ if [ -f ${site_conf} ]; then
     fastcgi_request_buffering=off # somente para mais de um webserver
 
     # descomenta e configura php socket no nginx
-    /run/init/site ${site_conf} ${major}
+    /run/init/site ${site_conf} ${major} ${default_public_dir}
 
     # Configura workers
     sed -E -i -e "s/worker_processes ([0-9]+|auto)/worker_processes ${qtd_cpus}/g" /etc/nginx/nginx.conf

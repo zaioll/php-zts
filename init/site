@@ -3,12 +3,13 @@
 site_conf=${1:-"/etc/nginx/sites-enabled/default"}
 major=${2:-"7"}
 SERVER_NAME=${SERVER_NAME:-""}
+default_public_dir=${3:-"/var/www/html"}
 
 # descomenta e configura php socket no nginx
 sed -E -i -e '/^\s*server \{/i\' -e "\nupstream php-fpm {\n\tserver unix:/run/php/php${major}-fpm.sock\;\n}" ${site_conf}
 sed -E -i -e '/#location \~ \\\.php\$ \{/,/#\}$/{s/#//;s/fastcgi_pass 12/#fastcgi_pass 12/}' ${site_conf}
 sed -E -i -e 's/^\s*fastcgi_pass .+\;$/\t\tfastcgi_pass php-fpm\;/' ${site_conf}
-sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_param SCRIPT_FILENAME /var/www/html/index.php\;\n\t\tfastcgi_param SERVER_NAME \$host\;" ${site_conf}
+sed -E -i -e '/^\s*fastcgi_pass/a\' -e "\t\tfastcgi_param SCRIPT_FILENAME ${default_public_dir}/index.php\;\n\t\tfastcgi_param SERVER_NAME \$host\;" ${site_conf}
 
 # Define server name
 if [ -n "${SERVER_NAME}" ]; then
