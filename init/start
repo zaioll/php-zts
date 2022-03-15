@@ -2,5 +2,10 @@
 
 . /run/init/configure
 
+# Run pre-init hook
+if [ -f /var/run/init-hook ];then
+    /var/run/init-hook
+fi
+
 # start supervisor and send to background
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

@@ -339,9 +339,6 @@ if [ ! -d /var/log/supervisor ];then
     mkdir -p /var/log/supervisor
 fi
 
-# Run pre-init hook
-su developer -c "/bin/bash /var/run/init-hook"
-
 echo -e "Configurations:
     Infrastructure values:
 
