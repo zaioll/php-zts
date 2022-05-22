@@ -13,7 +13,7 @@ fi
 # install php-xdebug
 cd ${install_base}/local/src/xdebug
 
-version_xdebug=$(git ls-remote --tags https://github.com/xdebug/xdebug.git | egrep -o '[0-9]+\.[0-9]+\.[0-9]*$' | tail -n 1 | cut -d_ -f2-4)
+version_xdebug=$(git ls-remote --tags https://github.com/xdebug/xdebug.git | egrep -o '2\.9\.[0-9]*$' | tail -n 1 | cut -d_ -f2-4)
 
 echo "install"
 figlet "php-xdebug"

@@ -31,7 +31,7 @@ if [ ! -d "${PWD}/php" ]; then
 fi
 echo "PHP source download success!"
 
-version_xdebug=$(git ls-remote --tags https://github.com/xdebug/xdebug.git | egrep -o '[0-9]+\.[0-9]+\.[0-9]*$' | tail -n 1 | cut -d_ -f2-4)
+version_xdebug=$(git ls-remote --tags https://github.com/xdebug/xdebug.git | egrep -o '2\.9\.[0-9]*$' | tail -n 1 | cut -d_ -f2-4)
 curl \
   --progress-bar \
   --max-time ${retry_max_time} \

@@ -5,7 +5,9 @@ set -e
 echo "Start PHP"
 
 if [ -f /run/init/is-configured ];then
+    echo "supervisor is starting..."
     /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    echo "Bye..."
     exit 0
 fi
 
@@ -143,7 +145,16 @@ fi
 
 if [[ ( -f ${extension_dir}/xdebug.so ) && ( "${APP_ENV}" = "debug"  || "${APP_ENV}" = "dev" ) ]]; then
     hospedeiro=$(/sbin/ip route|awk '/default/ { print $3 }')
-    DEFAULT="mode=coverage,develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
+
+    echo "Olá, linha 14"
+    #xdebug_version=$(/usr/bin/php -r "echo phpversion('xdebug');" | grep -o '^[0-9]')
+    xdg_version="2"
+    echo ${xdg_version}
+    if [ "${xdg_version}" = "3" ];then
+        DEFAULT="mode=coverage,develop,debug start_with_request=yes client_port=9000 idekey=VSCODE client_host=${hospedeiro}"
+    else
+        DEFAULT="remote_autostart=yes remote_enable=yes idekey=VSCODE remote_host=${hospedeiro}"
+    fi
     XDEBUG_CONFIG=${XDEBUG_CONFIG:-${DEFAULT}}
     if [ "${XDEBUG_CONFIG}" = "off" ]; then
         remove_xdebug_ini
